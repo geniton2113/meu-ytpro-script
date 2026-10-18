@@ -7,18 +7,14 @@ var touchstartY = 0;
 var touchendY = 0;
 var initialDistance = null;
 var sens = 0.005;
-var vol = Android.getVolume ? Android.getVolume() : 1;
-var brt = Android.getBrightness ? Android.getBrightness()/100 : 0.5;
+var vol = (window.Android && Android.getVolume) ? Android.getVolume() : 1;
+var brt = (window.Android && Android.getBrightness) ? Android.getBrightness()/100 : 0.5;
 
 // Inicialização Segura de Configurações
 var defaultSettings = {
-    // Playback
     bgplay: true, keepscreen: false, speed: "1", loop: false, autoplay: true, unlock60fps: false, volboost: false, doubletap: true, seekstep: "10", autocap: false,
-    // UI / Clean
     darkmode: true, oled: false, hideshorts: true, hideshortsnav: true, hidecomm: true, hidecomments: false, hidechat: false, hidewatermark: false, hidecast: false, hidecreate: false, hidenotif: false, hideexplore: false, hidehome: false, hideendscreen: true, hidepremium: true,
-    // Core
     adblock: true, sponsorblock: true, dislikes: true, gestures: true, miniplayergesture: false, forcezoom: false, 
-    // Cheats
     fastforward: false, spoofios: false, spoofdesktop: false, hideage: false, floatingmenu: false, debug: false
 };
 
@@ -34,50 +30,41 @@ function saveSetting(key, val) {
     applySettings();
 }
 
-// Elementos Dinâmicos
 var c="#000", d="#f2f2f2", dc="#fff", isD=false, dislikes="...";
 
 function updateThemeColors() {
     isD = Settings.darkmode || Settings.oled;
-    if (isD) {
-        c = "#fff"; dc = "#000"; d = "rgba(255,255,255,0.1)";
-    } else {
-        c = "#000"; dc = "#fff"; d = "rgba(0,0,0,0.05)";
-    }
-    if (Settings.oled) {
-        document.documentElement.style.setProperty('--yt-spec-base-background', '#000000');
-    } else {
-        document.documentElement.style.removeProperty('--yt-spec-base-background');
-    }
+    if (isD) { c = "#fff"; dc = "#000"; d = "rgba(255,255,255,0.1)"; } 
+    else { c = "#000"; dc = "#fff"; d = "rgba(0,0,0,0.05)"; }
 }
 
-// Injeção de CSS para Limpeza da UI
 function injectCustomCSS() {
     var style = document.getElementById("ytp-custom-styles");
     if (!style) {
         style = document.createElement('style');
         style.id = "ytp-custom-styles";
-        document.head.appendChild(style);
+        if(document.head) document.head.appendChild(style);
     }
+    if(!style) return;
+    
     var css = "";
     if (Settings.hideshorts) css += "ytm-reel-shelf-renderer, ytm-shorts-lockup-view-model { display: none !important; }";
-    if (Settings.hideshortsnav) css += "ytm-pivot-bar-item-renderer:nth-child(4) { display: none !important; }"; // Shorts na navbar
+    if (Settings.hideshortsnav) css += "ytm-pivot-bar-item-renderer:nth-child(4) { display: none !important; }";
     if (Settings.hidecomm) css += "ytm-backstage-post-thread-renderer { display: none !important; }";
     if (Settings.hidecomments) css += "#comments-button, ytm-comments-entry-point-header-renderer { display: none !important; }";
     if (Settings.hidechat) css += "#chat-container, ytm-live-chat-header-renderer { display: none !important; }";
     if (Settings.hidewatermark) css += ".ytp-watermark { display: none !important; }";
     if (Settings.hidecast) css += "ytm-cast-button-header { display: none !important; }";
-    if (Settings.hidecreate) css += "ytm-pivot-bar-item-renderer:nth-child(3) { display: none !important; }"; // Create na navbar
+    if (Settings.hidecreate) css += "ytm-pivot-bar-item-renderer:nth-child(3) { display: none !important; }";
     if (Settings.hidenotif) css += "ytm-notification-button-renderer { display: none !important; }";
     if (Settings.hideexplore) css += "ytm-explore-button-renderer { display: none !important; }";
-    if (Settings.hidehome) css += "ytm-browse { display: none !important; }"; // Esconde o feed
+    if (Settings.hidehome) css += "ytm-browse { display: none !important; }";
     if (Settings.hideendscreen) css += ".html5-endscreen, .ytp-ce-element { display: none !important; }";
     if (Settings.hidepremium) css += "ytm-mealbar-promo-renderer, ytm-button-renderer[target-id='premium'] { display: none !important; }";
     
     style.innerHTML = css;
 }
 
-// Força Dark Mode nativo
 function applyDarkMode() {
     if (Settings.darkmode || Settings.oled) {
         document.cookie = "PREF=f6=400; path=/; domain=.youtube.com";
@@ -86,35 +73,21 @@ function applyDarkMode() {
     }
 }
 
-/* --- APLICAR TODAS AS CONFIGURAÇÕES --- */
 function applySettings() {
     updateThemeColors();
     injectCustomCSS();
     applyDarkMode();
     
-    // Playback Speed
     var v = document.querySelector('video');
     if (v) {
         v.playbackRate = parseFloat(Settings.speed) || 1;
         v.loop = Settings.loop;
-        if (Settings.volboost) v.volume = 1.0; // Native max, AudioContext required for >1.0
-        
-        // Auto-play next video logic is tricky in JS, usually WebView handles it. We skip forcing it if false.
     }
     
-    // Screen On
-    if (Settings.keepscreen) {
-        if (window.Android && window.Android.keepScreenOn) window.Android.keepScreenOn(true);
-    } else {
-        if (window.Android && window.Android.keepScreenOn) window.Android.keepScreenOn(false);
-    }
-
-    // Background Play
     if (window.Android && window.Android.setBgPlay) {
         window.Android.setBgPlay(Settings.bgplay);
     }
     
-    // 60fps Unlock (Simulação de override de codecs)
     if (Settings.unlock60fps) {
         localStorage.setItem("block_60fps", "false");
     } else {
@@ -122,7 +95,6 @@ function applySettings() {
     }
 }
 
-/* --- INTERFACE DO MENU PREMIUM --- */
 function openPremiumMenu() {
     var existing = document.getElementById("premium-cheat-menu");
     if (existing) existing.remove();
@@ -175,7 +147,6 @@ function openPremiumMenu() {
             padding: 5px 10px; border-radius: 5px; cursor: pointer; font-family: inherit;
         }
         .pcm-btn:hover { background: #00ffcc; color: #000; }
-        /* Switch */
         .pcm-switch { position: relative; display: inline-block; width: 40px; height: 20px; }
         .pcm-switch input { opacity: 0; width: 0; height: 0; }
         .pcm-slider {
@@ -216,7 +187,7 @@ function openPremiumMenu() {
             ${createToggle('Ocultar Posts Comunidade', 'hidecomm')}
             ${createToggle('Ocultar Comentários', 'hidecomments')}
             ${createToggle('Ocultar Chat ao Vivo', 'hidechat')}
-            ${createToggle('Ocultar Marca D\\'água', 'hidewatermark')}
+            ${createToggle("Ocultar Marca D'água", 'hidewatermark')}
             ${createToggle('Ocultar Botão Cast', 'hidecast')}
             ${createToggle('Ocultar Botão Criar', 'hidecreate')}
             ${createToggle('Ocultar Notificações', 'hidenotif')}
@@ -241,7 +212,7 @@ function openPremiumMenu() {
             <div class="pcm-row">
                 <span class="pcm-label">Ações Rápidas</span>
                 <div>
-                    <button class="pcm-btn" onclick="window.ytproSabrDownload()">Baixar Vídeo</button>
+                    <button class="pcm-btn" onclick="if(window.ytproSabrDownload) window.ytproSabrDownload(); else alert('Downloader não carregado');">Baixar Vídeo</button>
                 </div>
             </div>
             <div class="pcm-row">
@@ -250,7 +221,7 @@ function openPremiumMenu() {
             </div>
             <div class="pcm-row">
                 <span class="pcm-label">Limpar Cache do App</span>
-                <button class="pcm-btn" onclick="Android.clearAppCache()">Limpar</button>
+                <button class="pcm-btn" onclick="if(window.Android && Android.clearAppCache) Android.clearAppCache()">Limpar</button>
             </div>
             <div class="pcm-row">
                 <span class="pcm-label">Créditos</span>
@@ -265,7 +236,6 @@ function openPremiumMenu() {
     document.body.insertAdjacentHTML('beforeend', menuHtml);
 }
 
-// Helpers para o HTML
 function createToggle(label, key) {
     var checked = Settings[key] ? 'checked' : '';
     return `
@@ -286,15 +256,13 @@ function createDropdown(label, key, options) {
     </div>`;
 }
 
-// Função para Copiar Link
 function copyCurrentLink() {
     let url = window.location.href.split('&si=')[0];
     navigator.clipboard.writeText(url).then(() => {
-        Android.showToast("Link copiado!");
+        if(window.Android && Android.showToast) Android.showToast("Link copiado!");
     });
 }
 
-/* --- BOTÃO FLUTUANTE PARA ABRIR O MENU --- */
 function addSettingsTab() {
     if (document.getElementById("setDiv") == null) {
         var setDiv = document.createElement("div");
@@ -321,7 +289,6 @@ function addSettingsTab() {
     }
 }
 
-/* --- ADBLOCK E FETCH INTERCEPT --- */
 function initAdBlock() {
     if (!Settings.adblock) return;
     const _origFetch = window.fetch;
@@ -364,33 +331,6 @@ function adsBlockDOM() {
     } catch{}
 }
 
-/* --- SPONSORBLOCK --- */
-async function checkSponsors() {
-    if (!Settings.sponsorblock) return;
-    if (window.location.href.indexOf("watch") === -1) return;
-    var vid = new URL(window.location.href).searchParams.get("v");
-    if (!vid) return;
-    
-    try {
-        let res = await fetch("https://sponsor.ajay.app/api/skipSegments?videoID=" + vid);
-        let data = await res.json();
-        sTime = data.map(x => x.segment);
-        
-        var player = document.querySelector(".video-stream");
-        if (player) {
-            player.ontimeupdate = () => {
-                var cur = player.currentTime;
-                for (var i = 0; i < sTime.length; i++) {
-                    if (Math.floor(cur) === Math.floor(sTime[i][0])) {
-                        player.currentTime = sTime[i][1];
-                    }
-                }
-            };
-        }
-    } catch(e) {}
-}
-
-/* --- GESTOS E CONTROLES --- */
 function initGestures() {
     if (!Settings.gestures) return;
     document.body.addEventListener('touchstart', e => {
@@ -401,49 +341,42 @@ function initGestures() {
         if (e.touches.length === 1 && e.target.className.includes("video-stream")) {
             var diff = touchstartY - e.touches[0].pageY;
             if (Math.abs(diff) > 10) {
-                // Lógica de Volume/Brilho (simplificada)
+                // Lógica de Volume/Brilho
             }
         }
     }, { capture: true });
 }
 
-/* --- CORE LOOP (OBSERVER) --- */
-// Usar um MutationObserver é muito mais eficiente que setInterval infinito
-const observer = new MutationObserver((mutations) => {
-    // Aplica CSS e configurações dinâmicas
-    injectCustomCSS();
-    adsBlockDOM();
-    addSettingsTab();
-    
-    // Fix do Player
-    var v = document.querySelector('video');
-    if (v) {
-        if (Settings.loop && !v.loop) v.loop = true;
-        if (Settings.speed && v.playbackRate != parseFloat(Settings.speed)) {
-            v.playbackRate = parseFloat(Settings.speed);
-        }
-    }
-});
-
-// Inicialização
-window.addEventListener('load', () => {
+// Inicialização Segura (Não depende do window.load)
+setTimeout(function() {
     applySettings();
     initAdBlock();
-    checkSponsors();
     initGestures();
     
-    observer.observe(document.body, { childList: true, subtree: true });
+    var observer = new MutationObserver(() => {
+        injectCustomCSS();
+        adsBlockDOM();
+        addSettingsTab();
+        
+        var v = document.querySelector('video');
+        if (v) {
+            if (Settings.loop && !v.loop) v.loop = true;
+            if (Settings.speed && v.playbackRate != parseFloat(Settings.speed)) {
+                v.playbackRate = parseFloat(Settings.speed);
+            }
+        }
+    });
     
-    // Verifica o hash mudou (para settings)
+    if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    injectCustomCSS();
+    addSettingsTab();
+    
     if (window.location.hash === "#settings") {
         openPremiumMenu();
     }
-    
-    // Roda uma vez para garantir
-    setTimeout(() => {
-        injectCustomCSS();
-        addSettingsTab();
-    }, 2000);
-});
+}, 1000); // Espera 1 segundo para garantir que a página carregou
 
 }

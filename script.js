@@ -1,13 +1,3 @@
-/*****YTPRO*******
-Author: Prateek Chaubey
-Version: 4.0.0
-URI: https://github.com/prateek-chaubey/YTPRO
-Last Updated On: 26 Sep , 2026 , 22:25 IST
-*/
-
-
-
-
 if(window.eruda == null && localStorage.getItem("devMode") == "true"){
 //ERUDA
 var script = document.createElement('script'); script.src="//youtube.com/ytpro_cdn/npm/eruda"; document.body.appendChild(script); script.onload=()=>{eruda.init();}

@@ -131,17 +131,7 @@ stroke-linejoin="round"
 </svg>
 `;
 
-
-
-
-
-
-
-
-
-
 function override() {
-
 var videoElem = document.createElement('video');
 var origCanPlayType = videoElem.canPlayType.bind(videoElem);
 videoElem.__proto__.canPlayType = makeModifiedTypeChecker(origCanPlayType);
@@ -155,8 +145,6 @@ mse.isTypeSupported = makeModifiedTypeChecker(origIsTypeSupported);
 
 
 function makeModifiedTypeChecker(origChecker) {
-
-
 return function (type) {
 if (type === undefined) return '';
 var disallowed_types = [];
@@ -194,10 +182,6 @@ return origChecker(type);
 }
 
 override();
-
-
-
-
 
 function insertAfter(referenceNode, newNode) {
 try{
@@ -254,11 +238,7 @@ window.location.hash="settings";
 });
 }
 }
-
-
 };
-
-
 
 
 /*Dislikes To Locale, Credits: Return YT Dislikes*/
@@ -296,7 +276,6 @@ compactDisplay: "short",
 }
 
 
-
 /*Skips the bad part :)*/
 async function skipSponsor(){
 var sDiv=document.createElement("div");
@@ -314,11 +293,7 @@ s1.setAttribute("style",`height:3px;width:${(100/dur) * (s2[1]-s2[0])}%;backgrou
 sDiv.appendChild(s1);
 }
 
-
-
-
 var e=await waitForElement("yt-progress-bar",false);
-
 
 if(document.getElementById("sDiv") == null){
 if(document.getElementsByClassName('ytPlayerProgressBarHost')[0] != null){
@@ -327,14 +302,7 @@ document.getElementsByClassName('ytPlayerProgressBarHost')[0].appendChild(sDiv);
 try{document.getElementsByClassName('ytProgressBarLineProgressBarLine')[0].appendChild(sDiv);}catch{}
 }
 }
-
-
-
-
 }
-
-
-
 
 
 /*Fetch The Dislikes*/
@@ -348,7 +316,6 @@ else if(Url.pathname.indexOf("watch") > -1){
 vID=Url.searchParams.get("v");
 }
 
-
 fetch("https://returnyoutubedislikeapi.com/votes?videoId="+vID)
 .then(response => {
 return response.json();
@@ -361,10 +328,8 @@ dislikes=getDislikesInLocale(parseInt(jsonObject.dislikes));
 }
 
 
-
 /*Check For Sponsorships*/
 async function checkSponsors(Url){
-
 
 if(Url.indexOf("watch") > -1){
 
@@ -380,11 +345,8 @@ sTime.push(time);
 }
 }).catch(error => {});
 
-
-
 /*Skip the Sponsor*/
 var player = await waitForElement(".video-stream",true);
-
 
 player.ontimeupdate=()=>{
 skipSponsor();
@@ -399,13 +361,7 @@ addSkipper(s2[0]);
 }
 }
 };
-
-
-
-
-
 }
-
 }
 
 
@@ -426,7 +382,7 @@ left:calc(15% / 2 );padding-left:10px;padding-right:10px;
 z-index:99999999999999;text-align:center;border-radius:25px;
 color:white;text-align:center;
 `);
-sSDiv.innerHTML=`<span style="height:30px;line-height:30px;margin-top:10px;display:block;font-family:monospace;font-size:16px;float:left;">Skipped Sponsor</span>
+sSDiv.innerHTML=`<span style="height:30px;line-height:30px;margin-top:10px;display:block;font-family:monospace;font-size:16px;float:left;">Patrocinador Pulado</span>
 <span style="height:30px;line-height:44px;float:right;padding-right:30px;margin-top:10px;display:block;padding-left:30px;border-left:1px solid white;">
 <svg data-action="rewind" xmlns="http://www.w3.org/2000/svg" width="23" height="23" style="margin-top:0px;" fill="currentColor" viewBox="0 0 16 16">
 <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/>
@@ -451,7 +407,6 @@ el.parentElement.parentElement.remove();
   el.parentElement.parentElement.remove();
   document.getElementsByClassName('video-stream')[0].currentTime=sT+1; 
   }
-  
 });
 
 
@@ -520,7 +475,7 @@ return t;
 
 /*Get Codecs*/
 function getYTPROCodecs(){
-var t=`<p style="text-align:center;font-size:14px;">This feature is experimental , this may break YTPro if not configured correctly. By default all the codecs are enabled , tap on the buttons below to switch them.</p><br> <vc  style="font-size:14px;">Video Codecs</vc><br>`;
+var t=`<p style="text-align:center;font-size:14px;">Este recurso é experimental, pode quebrar o YTPro se não configurado corretamente. Por padrão todos os codecs estão ativados, toque nos botões abaixo para alternar.</p><br> <vc  style="font-size:14px;">Codecs de Vídeo</vc><br>`;
 
 for(var y in YTPROCodecs.video){
 
@@ -533,7 +488,7 @@ t+=`<button data-action="setRemoveCodec" data-value="${x}" ${("true" == localSto
 </button>`;
 }
 
-t+=`<br><br><vc  style="font-size:14px">Audio Codecs</vc><br>`
+t+=`<br><br><vc  style="font-size:14px">Codecs de Áudio</vc><br>`
 for(var y in YTPROCodecs.audio){
 
 var x=YTPROCodecs.audio[y];
@@ -546,9 +501,9 @@ t+=`<button data-action="setRemoveCodec" data-value="${x}" ${("true" == localSto
 }
 
 t+=`<br><br>
-<div>Block 60FPS <span data-action="block_60fps" style="${sttCnf(0,0,"block_60fps")}" ><b style="${sttCnf(0,1,"block_60fps")}" ></b></span></div> `;
+<div>Bloquear 60FPS <span data-action="block_60fps" style="${sttCnf(0,0,"block_60fps")}" ><b style="${sttCnf(0,1,"block_60fps")}" ></b></span></div> `;
 
-t+=`<br><br><button data-action="done" style="margin-top:10px;width:25%;float:right;text-align:center;background:${c};color:${dc};" >Done</button>`;
+t+=`<br><br><button data-action="done" style="margin-top:10px;width:25%;float:right;text-align:center;background:${c};color:${dc};" >Concluído</button>`;
 
 
 return t;
@@ -721,13 +676,13 @@ margin-right:2%;
 color:${c};
 }
 </style>`;
-ytpSetI.innerHTML+=`<br><b style='font-size:18px' >YT PRO Settings</b>
+ytpSetI.innerHTML+=`<br><b style='font-size:18px' >YT PRO Configurações</b>
 <span style="font-size:10px">v${YTProVer}</span>
 <br><br>
 <div data-action="follow" style="min-height:35px;height:auto;width:95%;margin:auto;background:#ee2a7b44;border-radius:30px;margin-bottom:15px;border:1px solid #ee2a7b;display:flex;padding:5px;gap:8px;">
 
 <img style="flex-shrink: 0;height:40px;width:40px;border-radius:50%;" src="https://raw.githubusercontent.com/prateek-chaubey/YTPro/refs/heads/main/.github/img/habitius.webp" >
-<div style="display:flex;flex-direction:column;align-items:flex-start;height:100%;width:auto;flex-shrink:0;font-size:14px;background:re;padding:0;"><b>Please follow Habitius on Instagram</b>For daily habit,lifestyle and health tips </div>
+<div style="display:flex;flex-direction:column;align-items:flex-start;height:100%;width:auto;flex-shrink:0;font-size:14px;background:re;padding:0;"><b>Siga Habitius no Instagram</b>Para dicas de hábitos, estilo de vida e saúde</div>
 
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="${isD ? "#ccc" : "#444"}" viewBox="0 0 16 16">
 <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
@@ -735,71 +690,71 @@ ytpSetI.innerHTML+=`<br><b style='font-size:18px' >YT PRO Settings</b>
 
 </div>
 
-<div><input type="url" placeholder="Enter Youtube URL" id="ytproUrlInput" ></div>
+<div><input type="url" placeholder="Digite a URL do YouTube" id="ytproUrlInput" ></div>
 <br>
-<button data-action="hearts">Liked Videos
+<button data-action="hearts">Vídeos Curtidos
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="${isD ? "#ccc" : "#444"}" viewBox="0 0 16 16">
 <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
 </svg>
 </button>
 <br>
-<button data-action="checkUpdate">Check for Updates
+<button data-action="checkUpdate">Verificar Atualizações
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="${isD ? "#ccc" : "#444"}"  viewBox="0 0 16 16">
 <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
 </svg>
 </button>
 <br>
-<div>Autoskip Sponsors <span data-action="sttCnf" data-value="autoSpn" style="${sttCnf(0,0,"autoSpn")}" ><b style="${sttCnf(0,1,"autoSpn")}"></b></span></div>
+<div>Pular Patrocinadores (Auto) <span data-action="sttCnf" data-value="autoSpn" style="${sttCnf(0,0,"autoSpn")}" ><b style="${sttCnf(0,1,"autoSpn")}"></b></span></div>
 <br>
-<div>Gesture Controls <span data-action="sttCnf" data-value="gesC" style="${sttCnf(0,0,"gesC")}" ><b style="${sttCnf(0,1,"gesC")}"></b></span></div>
+<div>Controles de Gestos <span data-action="sttCnf" data-value="gesC" style="${sttCnf(0,0,"gesC")}" ><b style="${sttCnf(0,1,"gesC")}"></b></span></div>
 <br>
-<div>Miniplayer Gesture <span data-action="sttCnf" data-value="gesM" style="${sttCnf(0,0,"gesM")}" ><b style="${sttCnf(0,1,"gesM")}"></b></span></div>
+<div>Gesto do Miniplayer <span data-action="sttCnf" data-value="gesM" style="${sttCnf(0,0,"gesM")}" ><b style="${sttCnf(0,1,"gesM")}"></b></span></div>
 <br>
-<div>Force Zoom <span data-action="sttCnf" data-value="fzoom"  style="${sttCnf(0,0,"fzoom")}" ><b style="${sttCnf(0,1,"fzoom")}" ></b></span></div> 
+<div>Forçar Zoom <span data-action="sttCnf" data-value="fzoom"  style="${sttCnf(0,0,"fzoom")}" ><b style="${sttCnf(0,1,"fzoom")}" ></b></span></div> 
 <br>
-<div>Background Play <span data-action="sttCnf" data-value="bgplay" style="${sttCnf(0,0,"bgplay")}" ><b style="${sttCnf(0,1,"bgplay")}" ></b></span></div> 
+<div>Reprodução em Segundo Plano <span data-action="sttCnf" data-value="bgplay" style="${sttCnf(0,0,"bgplay")}" ><b style="${sttCnf(0,1,"bgplay")}" ></b></span></div> 
 <br>
-<div>Hide Shorts <span data-action="sttCnf" data-value="shorts" style="${sttCnf(0,0,"shorts")}" ><b style="${sttCnf(0,1,"shorts")}" ></b></span></div> 
+<div>Ocultar Shorts <span data-action="sttCnf" data-value="shorts" style="${sttCnf(0,0,"shorts")}" ><b style="${sttCnf(0,1,"shorts")}" ></b></span></div> 
 <br>
-<div>Hide Community Posts <span data-action="sttCnf" data-value="communityPosts" style="${sttCnf(0,0,"communityPosts")}" ><b style="${sttCnf(0,1,"communityPosts")}" ></b></span></div> 
+<div>Ocultar Posts da Comunidade <span data-action="sttCnf" data-value="communityPosts" style="${sttCnf(0,0,"communityPosts")}" ><b style="${sttCnf(0,1,"communityPosts")}" ></b></span></div> 
 <br>
-<div>Use single Gemini chat <span data-action="sttCnf" data-value="saveCInfo" style="${sttCnf(0,0,"saveCInfo")}" ><b style="${sttCnf(0,1,"saveCInfo")}"></b></span></div>
+<div>Usar chat único do Gemini <span data-action="sttCnf" data-value="saveCInfo" style="${sttCnf(0,0,"saveCInfo")}" ><b style="${sttCnf(0,1,"saveCInfo")}"></b></span></div>
 <br>
-<button data-action="geminiModels">Select Gemini Model
+<button data-action="geminiModels">Selecionar Modelo Gemini
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="${isD ? "#ccc" : "#444"}" viewBox="0 0 16 16">
 <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
 </svg>
 </button>
 <br>
-<button data-action="geminiPrompt">Edit Gemini Prompt
+<button data-action="geminiPrompt">Editar Prompt do Gemini
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="${isD ? "#ccc" : "#444"}" viewBox="0 0 16 16">
 <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
 </svg>
 </button>
 <br>
-<button data-action="disableCodecs">Disable Codecs
+<button data-action="disableCodecs">Desativar Codecs
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="${isD ? "#ccc" : "#444"}" viewBox="0 0 16 16">
 <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
 </svg>
 </button>
 <br>
-<button data-action="issues">Report Bugs
+<button data-action="issues">Reportar Bugs
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="${isD ? "#ccc" : "#444"}" viewBox="0 0 16 16">
 <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
 </svg>
 </button>
 <br>
-<button style="font-weight:bolder;" data-action="sponsor">Become a Sponsor
+<button style="font-weight:bolder;" data-action="sponsor">Seja um Patrocinador
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="${isD ? "#ccc" : "#444"}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M5 2l6 6-6 6"/>
 </svg>
 
 </button>
 <br>
-<div>Developer Mode <span data-action="sttCnf" data-value="devMode" style="${sttCnf(0,0,"devMode")}" ><b style="${sttCnf(0,1,"devMode")}"></b></span></div>
+<div>Modo Desenvolvedor <span data-action="sttCnf" data-value="devMode" style="${sttCnf(0,0,"devMode")}" ><b style="${sttCnf(0,1,"devMode")}"></b></span></div>
 <br><br>
-<p style="font-size:1.25rem;width:calc(100% - 20px);margin:auto;text-align:left"><b style="font-weight:bold">Disclaimer</b>: This is an educational project aimed at showcasing javascript injection into a webview to enhance productivity.<br>
-You can find the source code at <a href="https://www.youtube.com/redirect?q=https://github.com/prateek-chaubey/YTPRO" style="font-family:monospace;" > https://github.com/prateek-chaubey/YTPRO</a>
+<p style="font-size:1.25rem;width:calc(100% - 20px);margin:auto;text-align:left"><b style="font-weight:bold">Aviso</b>: Este é um projeto educacional com o objetivo de demonstrar a injeção de javascript em um webview para aumentar a produtividade.<br>
+Você pode encontrar o código fonte em <a href="https://www.youtube.com/redirect?q=https://github.com/prateek-chaubey/YTPRO" style="font-family:monospace;" > https://github.com/prateek-chaubey/YTPRO</a>
 <br><br></p><br><br><br>
 
 <div class="geminiModels">
@@ -813,7 +768,7 @@ You can find the source code at <a href="https://www.youtube.com/redirect?q=http
 ${localStorage.getItem("prompt")}
 </textarea>
 
-<button data-action="savePrompt" style="margin-top:10px;width:25%;float:right;text-align:center;background:${c};color:${dc};" >Save</button>
+<button data-action="savePrompt" style="margin-top:10px;width:25%;float:right;text-align:center;background:${c};color:${dc};" >Salvar</button>
 <br><br>
 </div>
 
@@ -824,7 +779,7 @@ ${localStorage.getItem("prompt")}
 
 
 <div class="credit" >
-<z style="margin-right:6px">Made with </z>
+<z style="margin-right:6px">Feito com </z>
 
 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#fff" viewBox="-1 -1 18 18">
 <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314" 
@@ -833,7 +788,7 @@ stroke="black" ${ !isD ? "stroke-width='1'" : "" } stroke-linejoin="round" strok
 
 
 
-<z style="margin-left:6px">by Prateek Chaubey</z>
+<z style="margin-left:6px">por Prateek Chaubey</z>
 </div>
 `;
 
@@ -931,7 +886,6 @@ ytpSetI.querySelector(".geminiModels").addEventListener("click",(e)=>{
 }
 
 
-
 function searchUrl(e){
   
   
@@ -960,7 +914,7 @@ function checkUpdates(){
 if(parseFloat(Android.getInfo()) < parseFloat(YTProVer) ){
 updateModel();
 }else{
-Android.showToast("Your app is up to date");
+Android.showToast("Seu aplicativo está atualizado");
 }
 
 fetch('https://youtube.com/ytpro_cdn/npm/ytpro', {cache: 'reload'});
@@ -1043,8 +997,6 @@ var script = document.createElement('script'); script.src="//youtube.com/ytpro_c
 
 
 }
-
-
 
 
 /*Format File Size*/
@@ -1175,7 +1127,6 @@ addMaxButton();
 
 }
 },{capture:true});
-
 
 
 
@@ -1394,19 +1345,17 @@ return html;
 
 
 
-
 /*checks if the object is empty*/
 var response=res.stream;
 
-if (response == undefined) return document.getElementById("GeminiResponse").innerHTML=`<center style="margin-top:15px" > An error Occurred while connecting to Gemini`;
-
+if (response == undefined) return document.getElementById("GeminiResponse").innerHTML=`<center style="margin-top:15px" > Ocorreu um erro ao conectar ao Gemini`;
 
 
 var lines=response.split("\n");
 var body=getBody(lines);
 
 
-if(body.length === 0) return document.getElementById("GeminiResponse").innerHTML=`<center style="margin-top:15px" > An error Occurred while connecting to Gemini`;
+if(body.length === 0) return document.getElementById("GeminiResponse").innerHTML=`<center style="margin-top:15px" > Ocorreu um erro ao conectar ao Gemini`;
 
 
 var chat=[];
@@ -1443,13 +1392,12 @@ text+=`<center><img alt="${img[0][4]}" src="${img[0][0][0]}"></center>`;
 
 
 
-
 let converter = new showdown.Converter();
 converter.setFlavor('github');
 let html = modifyTimestamps(converter.makeHtml(text));
 
 
-let thoughtsHtml=(thoughts != null) ? `<button onclick="(this.nextElementSibling.style.height=='auto') ? (this.children[0].style.transform='rotate(-90deg)',this.nextElementSibling.style.height='0') : (this.children[0].style.transform='rotate(90deg)',this.nextElementSibling.style.height='auto');" class="think" >Show Thinking 
+let thoughtsHtml=(thoughts != null) ? `<button onclick="(this.nextElementSibling.style.height=='auto') ? (this.children[0].style.transform='rotate(-90deg)',this.nextElementSibling.style.height='0') : (this.children[0].style.transform='rotate(90deg)',this.nextElementSibling.style.height='auto');" class="think" >Mostrar Raciocínio 
 <svg xmlns="http://www.w3.org/2000/svg" style="transform:rotate(-90deg);margin-left:10px" width="16" height="16" fill="${isD ? "#ccc" : "#444"}" viewBox="0 0 16 16">
 <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
 </svg></button>
@@ -1460,7 +1408,7 @@ ${converter.makeHtml(thoughts)}
 
 </div><br>` : "";
 
-document.getElementById("GeminiResponse").innerHTML=`<a href="https://gemini.google.com/chat/${chat[0].replace("c_","")}" >Go to the chat</a><br><br>
+document.getElementById("GeminiResponse").innerHTML=`<a href="https://gemini.google.com/chat/${chat[0].replace("c_","")}" >Ir para o chat</a><br><br>
 
 ${thoughtsHtml}
 
@@ -1501,10 +1449,10 @@ var cookies=Android.getAllCookies(window.location.href);
 if(cookies.indexOf("__Secure-1PSID=") < 0){
 GeminiRes.innerHTML=`
 <center style="margin-top:15px">
-<span >Sign in to use Gemini<span>
+<span >Faça login para usar o Gemini<span>
 <br><br>
 <a href="https://accounts.google.com/ServiceLogin?service=youtube" >
-<button style="background:${c};color:${isD ? "#000" : "#fff"};font-weight:500;height:35px;width:90px;border-radius:25px;text-align:center;line-height:35px;">Sign In</button>
+<button style="background:${c};color:${isD ? "#000" : "#fff"};font-weight:500;height:35px;width:90px;border-radius:25px;text-align:center;line-height:35px;">Entrar</button>
 </a>
 <br><br>
 
@@ -1688,7 +1636,6 @@ elB.style.opacity="0";
 
 
 
-
 if(!document.getElementById("volS")){
 document.getElementById("player-container-id").appendChild(el);
 
@@ -1730,7 +1677,6 @@ el.style.opacity="0";
 }catch(e){
   console.log(e)
 }
-
 
 
 
@@ -1848,7 +1794,6 @@ border-left:3px solid ${d};
 
 
 
-
 ytproMainDiv.appendChild(ytproGemini);
 
 
@@ -1866,6 +1811,7 @@ geminiInfo();
 
 
 });
+
 
 
 
@@ -2039,7 +1985,7 @@ position:absolute;bottom:20px;
 z-index:9;padding:20px;text-align:center;border-radius:25px;text-align:center;
 `);
 ytproHh.innerHTML=`<style>#heartytprodiv a{text-decoration:none;} #heartytprodiv li{list-style:none; display:flex;align-items:center;border-radius:15px;padding:0px;background:${d};margin:5px;}</style>`;
-ytproHh.innerHTML+="Liked Videos<ul id='listurl'>";
+ytproHh.innerHTML+="Vídeos Curtidos<ul id='listurl'>";
 
 
 ytproHh.innerHTML+="<style>.thum{height:70px;border-radius:5px;}.thum img{float:left;height:70px;width:125px;border-radius:15px 0 0 15px;flex-shrink: 0;}</style>";
@@ -2057,13 +2003,13 @@ history.back();
 
 
 if(localStorage.getItem("hearts") == null){
-ytproHh.innerHTML+="No Videos Found";
+ytproHh.innerHTML+="Nenhum vídeo encontrado";
 }else{
 
 var v=JSON.parse(localStorage.getItem("hearts"));
 
 if(Object.keys(v).length === 0){
-return ytproHh.innerHTML+="No Videos Found";
+return ytproHh.innerHTML+="Nenhum vídeo encontrado";
 }
 
 for(var n=Object.keys(v).length - 1; n >  -1 ; n--){
@@ -2275,7 +2221,6 @@ isPIP=true;
 
 
 
-
 // well this is for bypassing the pause function of Youtube when video is in
 // PIP mode , its a workaround for now , until i find a proper method
 // to allow the pip mode for the video element , like chromium browsers
@@ -2290,6 +2235,7 @@ if (this.paused) {
 this.play().catch(() => {});
 }
 };
+
 
 
 
@@ -2542,6 +2488,7 @@ try{document.getElementsByTagName("ytm-shorts-lockup-view-model")[x].remove();
 }
 
 }
+
 }
 
 
@@ -2690,20 +2637,20 @@ x.setAttribute("style",`height:100%;width:100%;position:fixed;display:grid;align
 
 x.innerHTML=`
 <div style="height:auto;width:70%;padding:20px;background:rgba(0,0,0,.6);border:1px solid #888;box-shadow:0px 0px 5px black;color:white;backdrop-filter:blur(10px);border-radius:15px;margin:auto">
-<h2> Update Available</h2><br>
-Latest Version ${YTProVer} of YTPRO is available , update the YTPRO to get latest features.
+<h2> Atualização Disponível</h2><br>
+A versão mais recente ${YTProVer} do YTPRO está disponível, atualize o YTPRO para obter os recursos mais recentes.
 <br>
-- Fixed Downloader<br>
-- Added container lables on Audio Only<br>
-- Fixed Gemini Bugs , added new models<br>
-- Optimized overall UI<br>
-- Fixed bugs and improved functionality<br>
-- for the full list <u data-action="url" >click here</u>
+- Downloader corrigido<br>
+- Rótulos de contêiner adicionados em Audio Only<br>
+- Bugs do Gemini corrigidos, novos modelos adicionados<br>
+- UI geral otimizada<br>
+- Bugs corrigidos e funcionalidade melhorada<br>
+- para a lista completa <u data-action="url" >clique aqui</u>
 <br>
 <br>
 <div style="display:flex;">
-<button style="border:0;border-radius:10px;height:30px;width:150px;background:;" data-action="cancel">Cancel</button>
-<button style="border:0;border-radius:10px;height:30px;width:150px;background:rgba(255,50,50,.7);float:right;" data-action="download" >Download</button>
+<button style="border:0;border-radius:10px;height:30px;width:150px;background:;" data-action="cancel">Cancelar</button>
+<button style="border:0;border-radius:10px;height:30px;width:150px;background:rgba(255,50,50,.7);float:right;" data-action="download" >Baixar</button>
 </div>
 
 </div>

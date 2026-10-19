@@ -2036,4 +2036,746 @@ ytproHh.innerHTML=`<style>#heartytprodiv a{text-decoration:none;} #heartytprodiv
 ytproHh.innerHTML+="Vídeos Curtidos<ul id='listurl'>";
 
 
-ytproHh.innerHTML+="<style>.thum{height:70px;border-radius:5px;}.thum img{float:left;height:70
+ytproHh.innerHTML+="<style>.thum{height:70px;border-radius:5px;}.thum img{float:left;height:70px;width:125px;border-radius:15px 0 0 15px;flex-shrink: 0;}</style>";
+
+document.body.appendChild(ytproH);
+ytproH.appendChild(ytproHh);
+
+ytproH.addEventListener("click",
+function(ev){
+if(!ev.composedPath().includes(ytproHh)){
+history.back();
+}
+});
+
+
+
+if(localStorage.getItem("hearts") == null){
+ytproHh.innerHTML+="Nenhum vídeo encontrado";
+}else{
+
+var v=JSON.parse(localStorage.getItem("hearts"));
+
+if(Object.keys(v).length === 0){
+return ytproHh.innerHTML+="Nenhum vídeo encontrado";
+}
+
+for(var n=Object.keys(v).length - 1; n >  -1 ; n--){
+var x=Object.keys(v)[n];
+ytproHh.innerHTML+=`<li class="thum" >
+<img data-action="navigateInternalYtMweb" data-id="${x}" style="object-fit:contain;" src="${v[x].thumb}" ><br>
+<div style="width:calc(100% - 170px);margin-left:5px;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical; -webkit-line-clamp:3;overflow:hidden;text-overflow:ellipsis;" data-action="navigateInternalYtMweb" data-id="${x}" >${v[x].title}</div>
+<div style="width:calc(100% - (100% - 35px))">
+<svg data-action="remHeart" data-id="${x}" xmlns="http://www.w3.org/2000/svg" width="20" height="20" style="margin-left:0px;" fill="${c}" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
+</svg>
+</span>
+</div>
+</li>`;
+await new Promise(r => setTimeout(r, 1));
+}
+
+
+ytproHh.addEventListener("click",(e)=>{
+  var el=e.target.closest("[data-action]");
+  
+  if(!el) return;
+  if(el.dataset.action == "navigateInternalYtMweb"){
+    navigateInternalYtMweb(el.dataset.id);
+  }else if(el.dataset.action == "remHeart"){
+    remHeart(el,el.dataset.id);
+  }
+  
+});
+
+}
+
+
+
+
+
+}
+
+
+function navigateInternalYtMweb(videoId) {
+    window.location.hash="";
+    const link = document.createElement('a');
+    link.href = `/watch?v=${videoId}`;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+}
+
+
+/*Dil hata diya vro*/
+function remHeart(y,x){
+if(localStorage.getItem("hearts")?.indexOf(x) > -1){
+y.parentElement.parentElement.remove();
+var j=JSON.parse(localStorage.getItem("hearts") || "{}");
+delete j[x];
+localStorage.setItem("hearts",JSON.stringify(j));
+}
+
+}
+
+function ytProHeart(x){
+
+
+var vid=(new URLSearchParams(window.location.search)).get('v') || window.location.pathname.replace("/shorts/","");
+
+var video = document.getElementsByClassName('video-stream')[0];
+var canvas = document.createElement('canvas');
+var context = canvas.getContext('2d');
+
+var isShorts = window.location.pathname.indexOf("shorts") > -1;
+
+if (isShorts) {
+  canvas.width = 90;
+  canvas.height = 160;
+  context.fillStyle = "black";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+} else {
+  canvas.width = 320;
+  canvas.height = 180;
+  context.fillStyle = "black";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+}
+  
+var dataURI = canvas.toDataURL('image/jpeg');
+
+
+if(window.location.pathname.indexOf("shorts") > -1){
+
+var vDetails={
+thumb:dataURI,
+title:document.getElementsByClassName('ytShortsVideoTitleViewModelShortsVideoTitle')[0].textContent.replaceAll("|","").replaceAll("\\","").replaceAll("?","").replaceAll("*","").replaceAll("<","").replaceAll("/","").replaceAll(":","").replaceAll('"',"").replaceAll(">","")
+};
+
+}else{
+
+var vDetails={
+thumb:dataURI,
+title:document.getElementsByClassName('slim-video-metadata-header')[0].textContent.replaceAll("|","").replaceAll("\\","").replaceAll("?","").replaceAll("*","").replaceAll("<","").replaceAll("/","").replaceAll(":","").replaceAll('"',"").replaceAll(">","")
+}
+
+/*
+var vDetails={
+thumb:[...ytplayer.config.args.raw_player_response?.videoDetails?.thumbnail?.thumbnails].pop().url,
+title:ytplayer.config.args.raw_player_response?.videoDetails?.title.replaceAll("|","").replaceAll("\\","").replaceAll("?","").replaceAll("*","").replaceAll("<","").replaceAll("/","").replaceAll(":","").replaceAll('"',"").replaceAll(">","")
+};*/
+
+}
+
+
+
+var g="16";
+(window.location.href.indexOf('youtube.com/shorts') > -1) ? g="24" : g="24" ;
+
+
+
+if(localStorage.getItem("hearts")?.indexOf(vid) > -1){
+var j=JSON.parse(localStorage.getItem("hearts") || "{}");
+delete j[vid];
+localStorage.setItem("hearts",JSON.stringify(j));
+x.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" width="${g}" height="${g}" fill="${(window.location.href.indexOf('youtube.com/shorts') > -1) ? "#fff" : c }" viewBox="0 0 24 24">
+<path d="M0 0h24v24H0V0z" fill="none"/><path fill="${(window.location.href.indexOf('youtube.com/shorts') > -1) ? "#fff" : c }" d="M19.66 3.99c-2.64-1.8-5.9-.96-7.66 1.1-1.76-2.06-5.02-2.91-7.66-1.1-1.4.96-2.28 2.58-2.34 4.29-.14 3.88 3.3 6.99 8.55 11.76l.1.09c.76.69 1.93.69 2.69-.01l.11-.1c5.25-4.76 8.68-7.87 8.55-11.75-.06-1.7-.94-3.32-2.34-4.28zM12.1 18.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/></svg>`;
+}else{
+var j=JSON.parse(localStorage.getItem("hearts") || "{}");
+j[vid]=vDetails;
+localStorage.setItem("hearts",JSON.stringify(j));
+x.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" width="${g}" height="${g}" viewBox="0 0 24 24" ><path d="M0 0h24v24H0V0z" fill="none"/><path fill="${(window.location.href.indexOf('youtube.com/shorts') > -1) ? "#fff" : c }" d="M13.35 20.13c-.76.69-1.93.69-2.69-.01l-.11-.1C5.3 15.27 1.87 12.16 2 8.28c.06-1.7.93-3.33 2.34-4.29 2.64-1.8 5.9-.96 7.66 1.1 1.76-2.06 5.02-2.91 7.66-1.1 1.41.96 2.28 2.59 2.34 4.29.14 3.88-3.3 6.99-8.55 11.76l-.1.09z"/></svg>`;
+}
+
+}
+
+
+
+/*Dil diya hai ya nhi diya!!*/
+function isHeart(){
+
+if((localStorage.getItem("hearts")?.indexOf((new URLSearchParams(window.location.search)).get('v'))  > -1)  ||  (localStorage.getItem("hearts")?.indexOf(window.location.pathname.replace("/shorts/",""))  > -1)){
+return true;
+}else{
+return false;
+
+}
+}
+
+
+
+
+
+
+///PIP MODE CONFIG
+function removePIP(){
+
+isPIP=false;
+pauseAllowed = true;
+document.exitFullscreen();
+ 
+document.getElementsByClassName('video-stream')[0].pause();
+setTimeout(()=>{
+document.getElementsByClassName('video-stream')[0].play();
+},5);
+
+
+}
+
+
+
+
+function PIPlayer(pip = false){
+  
+var v=document.getElementsByClassName('video-stream')[0];
+
+ 
+if(pip){
+
+if(v.getBoundingClientRect().height > v.getBoundingClientRect().width){
+Android.pipvid("portrait");
+}
+else{
+Android.pipvid("landscape");
+}
+
+return;
+}
+
+
+v.requestFullscreen();
+v.play();
+pauseAllowed = false;
+isPIP=true;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// well this is for bypassing the pause function of Youtube when video is in
+// PIP mode , its a workaround for now , until i find a proper method
+// to allow the pip mode for the video element , like chromium browsers
+
+HTMLMediaElement.prototype.pause = function(){
+  
+if (pauseAllowed || PIPause) {
+return originalPause.apply(this, arguments);
+}
+
+if (this.paused) {
+this.play().catch(() => {});
+}
+};
+
+
+
+
+
+
+
+
+
+const originalExitFullscreen = document.exitFullscreen;
+const originalRequestFullscreen = Element.prototype.requestFullscreen;
+
+//exit full screen
+document.exitFullscreen = function (...args) {
+ if(!isPIP){ return originalExitFullscreen.apply(this, args);}
+};
+
+
+//request full screen
+Element.prototype.requestFullscreen = function (...args) {
+var video = document.getElementsByClassName('video-stream')[0];
+
+if(video.getBoundingClientRect().height > video.getBoundingClientRect().width){
+Android.fullScreen(true);
+}
+else{
+Android.fullScreen(false);
+}
+
+return originalRequestFullscreen.apply(this, args);
+};
+
+
+
+
+
+
+/*Check The Hash Change*/
+window.onhashchange=()=>{
+try{document.getElementById("outerdownytprodiv").remove();}catch{}
+try{document.getElementById("outerheartsdiv").remove();}catch{}
+try{document.getElementById("settingsprodiv").remove();}catch{}
+try{document.getElementById("ytproDownloadMenu").remove();}catch{}
+//try{document.querySelector("#ytproDownloadIndicator").remove();}catch{}
+//try{document.querySelector("#ytProDownloaderDiv").remove();}catch{}
+if(window.location.hash == "#download"){
+showDownloadMenu();
+}else if(window.location.hash == "#settings"){
+ytproSettings();
+}
+else if(window.location.hash == "#hearts"){
+showHearts();
+}
+
+
+}
+
+
+
+// AdBlocker which removes the ad contents from the fetch requests itself !!
+(() => {
+const _origFetch = window.fetch;
+window.fetch = async function(input, init) {
+try {
+const url = (typeof input === 'string') ? input : input.url;
+
+
+
+//block ad urls
+if(url.includes("googleads.g.doubleclick.net") || url.includes("youtube.com/youtubei/v1/player/ad_break") || url.includes("youtube.com/pagead/adview") || url.includes("youtube.com/api/stats/ads")){
+
+//console.log("Blocked",url);
+return "";
+}else if(url.includes("youtube.com/youtubei/")){
+
+
+const response = await _origFetch.apply(this, arguments);
+
+
+
+try {
+
+const clone = response.clone();
+let data = await clone.json();
+
+
+//older version
+if(data?.responseContext?.webResponseContextExtensionData?.webResponseContextPreloadData?.preloadMessageNames?.[0] == "adSlotRenderer" || data?.responseContext?.webResponseContextExtensionData?.webResponseContextPreloadData?.preloadMessageNames?.[0] == "shortsAdsRenderer"){
+data={};
+}
+
+
+//remove the ad content
+delete data?.adSlots;
+delete data?.playerAds;
+delete data?.adPlacements;
+delete data?.adBreakHeartbeatParams;
+
+
+//newer version update: 09 Feb , 2026 23:27 IST
+delete data?.[0]?.playerResponse?.adSlots;
+delete data?.[0]?.playerResponse?.playerAds;
+delete data?.[0]?.playerResponse?.adPlacements;
+delete data?.[0]?.playerResponse?.adBreakHeartbeatParams;
+
+
+const newBody = JSON.stringify(data);
+
+// Build new headers (update content-length + content-type)
+const newHeaders = new Headers(response.headers);
+newHeaders.set("content-length", String(newBody.length));
+newHeaders.set("content-type", "application/json");
+
+// Return modified Response
+return new Response(newBody, {
+status: response.status,
+statusText: response.statusText,
+headers: newHeaders
+});
+} catch (e) {
+// not JSON, return original
+return response;
+}
+
+
+
+}
+
+return _origFetch.apply(this, arguments);
+
+} catch (e) { /* ignore logging errors */ }
+
+return _origFetch.apply(this, arguments);
+
+
+};
+
+
+})();
+
+
+
+//modified XHR for the same purpose
+const XHR = window.XMLHttpRequest;
+const origOpen = XHR.prototype.open;
+const origSend = XHR.prototype.send;
+
+XHR.prototype.open = function(method, url, ...rest) {
+this._interceptedMethod = method;
+this._interceptedUrl = url;
+return origOpen.apply(this, [method, url, ...rest]);
+};
+
+XHR.prototype.send = function(body) {
+// Block certain URLs
+if (
+this._interceptedUrl.includes("googleads.g.doubleclick.net") ||
+this._interceptedUrl.includes("youtube.com/youtubei/v1/player/ad_break") ||
+this._interceptedUrl.includes("youtube.com/pagead/adview") ||
+this._interceptedUrl.includes("youtube.com/api/stats/ads")
+) {
+//console.warn("Blocked:", this._interceptedUrl);
+return;
+}
+
+return origSend.apply(this, arguments);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+/****** I LOVE YOU <3 *****/
+/*YT ADS BLOCKER*/
+function adsBlock(){
+
+
+try{
+document.getElementsByClassName('video-stream')[0].removeAttribute('disablepictureinpicture');
+}catch{}
+
+
+/*Block Ads*/
+var ads=document.getElementsByTagName("ad-slot-renderer");
+for(var x in ads){
+try{ads[x].remove();}catch{}
+}
+try{
+document.getElementsByClassName("ad-interrupting")[0].getElementsByTagName("video")[0].currentTime=document.getElementsByClassName("ad-interrupting")[0].getElementsByTagName("video")[0].duration;
+document.getElementsByClassName("ytp-ad-skip-button-modern")[0].click();
+
+}catch{}
+
+
+
+
+/*Block Ads*/
+try{
+document.getElementsByTagName("ytm-promoted-sparkles-web-renderer")[0].remove();
+}catch{}
+try{
+document.getElementsByTagName("ytm-companion-ad-renderer")[0].remove();
+}catch{}
+
+/*Remove Open App*/
+try{
+document.querySelectorAll('a').forEach(a => {
+if (a.href.indexOf("intent://") > -1) {
+a.style.display = 'none';
+}
+});
+}catch{}
+/*Remove Promotion Element*/
+try{document.getElementsByTagName("ytm-paid-content-overlay-renderer")[0].style.display="none";}catch{}
+
+
+
+
+/*Hide Community Posts*/
+if(localStorage.getItem("communityPosts") == "true"){
+
+document.querySelectorAll("ytm-backstage-post-thread-renderer")?.forEach(el => el.remove());
+  
+}
+ 
+
+/*Hide Shorts*/
+if(localStorage.getItem("shorts") == "true"){
+
+
+for( x in document.getElementsByClassName("big-shorts-singleton")){
+try{document.getElementsByClassName("big-shorts-singleton")[x].remove();
+}catch{}
+}
+
+for( x in document.getElementsByTagName("ytm-reel-shelf-renderer")){
+try{document.getElementsByTagName("ytm-reel-shelf-renderer")[x].remove();
+}catch{}
+
+for( x in document.getElementsByTagName("ytm-shorts-lockup-view-model")){
+try{document.getElementsByTagName("ytm-shorts-lockup-view-model")[x].remove();
+}catch{}
+
+}
+
+}
+}
+
+
+
+
+}
+
+
+
+
+
+//Add Maximize Gesture
+function addMaxButton(){
+
+
+var pElem=document.getElementById('player-container-id');
+var Ve=document.getElementById('player');
+var Vv=document.getElementsByClassName('video-stream')[0];
+
+
+
+if(pElem === document.fullscreenElement){
+
+
+try{
+if(zoomIn){
+Ve.style.transform=`scale(${scale})`;
+}else{
+Ve.style.transform="scale(1)";  
+}
+}catch{}
+
+
+}else{
+try{
+Ve.style.transform="scale(1)";
+}catch{}
+}
+
+
+}
+
+
+async function extraSpeed(){
+  var el=document.querySelector(".ytwVariableSpeedControllerViewModelButtonContainer");
+ if(!el) return;
+ 
+ 
+const slider = document.getElementById("slider");
+
+if(slider.max==10) return;
+
+slider.max = 10;
+slider.ariaValueMax = "10";
+
+slider.addEventListener("input", () => {
+  const video = document.querySelector('.video-stream');
+  if (video) video.playbackRate = parseFloat(slider.value);
+});
+
+if(el.children.length >= 6) el.children[0].remove();
+
+if(!document.getElementById("10xSpeed")){
+
+var elm=document.createElement("ytw-variable-speed-controller-speed-button-view-model");
+
+elm.id="10xSpeed";
+elm.className="ytwVariableSpeedControllerSpeedButtonViewModelHost ytwVariableSpeedControllerViewModelPlaybackSpeedButton";
+
+
+elm.insertAdjacentHTML("beforeend",`<button-view-model class="ytSpecButtonViewModelHost"><button class="ytSpecButtonShapeNextHost ytSpecButtonShapeNextTonal ytSpecButtonShapeNextMono ytSpecButtonShapeNextSizeS ytSpecButtonShapeNextEnableBackdropFilterExperiment" title="" aria-disabled="false" style=""><div class="ytSpecButtonShapeNextButtonTextContent ytSpecButtonShapeNextElevatedContent">10x</div><yt-touch-feedback-shape aria-hidden="true" class="ytSpecTouchFeedbackShapeHost ytSpecTouchFeedbackShapeTouchResponse"><div class="ytSpecTouchFeedbackShapeStroke"></div><div class="ytSpecTouchFeedbackShapeFill"></div></yt-touch-feedback-shape><yt-light-shape aria-hidden="true" class="contribYtLightShapeHost contribYtLightShapeStaticRimLight contribYtLightShapeStaticRimLightTonal" style="--yt-light-wash-opacity: 0; --yt-light-wash-x: 0px; --yt-light-wash-y: 0px; --yt-light-wash-size: 0px;"><div class="contribYtLightShapeStaticWashLight contribYtLightShapeStaticWashLightTonal" style=""></div></yt-light-shape></button></button-view-model>`);
+
+elm.addEventListener("click", () => {
+   // document.querySelector('.video-stream').playbackRate = 10;
+    slider.value=10;
+    slider.dispatchEvent(new Event("input", { bubbles: true }));
+
+});
+
+el.appendChild(elm);
+
+
+}
+
+}
+
+
+//https://youtube.com/watch?v=SInH_fP0deQ
+
+
+
+/*Mutation Observer*/
+//as i have been developing YTPRO for almost 4 years now
+//thus it still contains the code which i used when i was a
+//totally noob in copy pasting , that time i wasn't aware of
+//plenty of things and by which i used `setInterval` instead
+//of mutation observer , i shall be optimizing the code in future
+//releases but rn only a few code blocks will be in the observer
+
+const targetNode = document.body;
+const config = { childList: true, subtree: true };
+
+const observer = new MutationObserver(() => {
+
+
+//speed
+
+extraSpeed(); 
+  
+//ads Block
+adsBlock();
+
+
+//mE button
+addMaxButton();
+
+//settingsTab
+addSettingsTab();
+
+
+try{
+var video = document.getElementsByClassName('video-stream')[0];
+if(video.getBoundingClientRect().height > video.getBoundingClientRect().width){
+Android.fullScreen(true);
+}
+else{
+Android.fullScreen(false);
+}}
+catch{}
+
+
+});
+
+// Start observing changes in the body
+observer.observe(targetNode, config);
+
+
+
+
+
+/*Update your app bruh*/
+function updateModel(){
+var x=document.createElement("div");
+
+x.setAttribute("style",`height:100%;width:100%;position:fixed;display:grid;align-items:center;top:0;left:0;background:rgba(0,0,0,.6);z-index:99999;`);
+
+x.innerHTML=`
+<div style="height:auto;width:70%;padding:20px;background:rgba(0,0,0,.6);border:1px solid #888;box-shadow:0px 0px 5px black;color:white;backdrop-filter:blur(10px);border-radius:15px;margin:auto">
+<h2> Atualização disponível</h2><br>
+A versão ${YTProVer} do YOUTUBE PREMIUM está disponível. Atualize para obter os recursos mais recentes.
+<br>
+- Downloader corrigido<br>
+- Rótulos de container em Áudio Apenas<br>
+- Bugs do Gemini corrigidos , novos modelos adicionados<br>
+- UI otimizada<br>
+- Bugs corrigidos e funcionalidades melhoradas<br>
+- para a lista completa <u data-action="url" >clique aqui</u>
+<br>
+<br>
+<div style="display:flex;">
+<button style="border:0;border-radius:10px;height:30px;width:150px;background:;" data-action="cancel">Cancelar</button>
+<button style="border:0;border-radius:10px;height:30px;width:150px;background:rgba(255,50,50,.7);float:right;" data-action="download" >Baixar</button>
+</div>
+
+</div>
+`;
+
+x.addEventListener("click",(e)=>{
+  var el=e.target.closest("[data-action]");
+  if(!el) return;
+  var action=el.dataset.action;
+  
+  if(action == "url"){
+    Android.oplink('https://github.com/prateek-chaubey/YTPRO/releases');
+  }else if(action == "download"){
+    Android.downvid('YTPRO.zip','https://nightly.link/prateek-chaubey/YTPro/workflows/gradle/main/YTPRO.zip','application/zip');  
+  }else if(action =="cancel"){
+    el.parentElement.parentElement.parentElement.remove();
+  }
+  
+})
+
+document.body.appendChild(x);
+}
+
+ 
+
+window.onload = function(){
+if(parseFloat(Android.getInfo()) < parseFloat(YTProVer) && (window.location.href == "https://m.youtube.com/" || window.location.href == "https://m.youtube.com") ){
+updateModel();
+}
+
+};
+
+
+
+
+document.addEventListener('click',(event) => {
+
+let anchor = event.target.closest('a');
+if (anchor){
+
+
+if(anchor.href.includes("www.youtube.com/redirect")){
+
+try{
+document.getElementsByClassName('video-stream')[0].pause();
+}catch{}
+
+const url=new URL(anchor.href).searchParams.get("q");
+
+setTimeout(()=>{Android.oplink(url)},50);
+
+event.preventDefault();
+event.stopPropagation(); 
+
+}
+
+
+}
+},
+true);
+
+function showCurtain(){
+  const el=document.createElement("div");
+  Object.assign(el.style,{
+    position:"fixed",
+    zIndex:"9999999",
+    width:"100%",
+    height:"100%",
+    top:0,
+    left:0
+  })
+  el.id="ytProCurtain"
+  document.body.appendChild(el)
+}
+
+  function hideCurtain(){
+    document.getElementById("ytProCurtain")?.remove()
+  }
+
+}

@@ -31,7 +31,7 @@ var script = document.createElement('script'); script.src="//youtube.com/ytpro_c
 
 if(!YTProVer){
 
-var YTProVer = window.YTProVer = "5.0.0";
+var YTProVer = window.YTProVer = "5.3.0";
 console.log("[YOUTUBE PREMIUM] script carregado");
 var ytoldV="";
 var isF=false;
@@ -838,8 +838,6 @@ font-family:Roboto,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
 animation: ytpSlideUp 0.3s cubic-bezier(0.16,1,0.3,1);
 `);
 
-var isKeyActive = localStorage.getItem("ytpro_premium_active") === "true";
-var savedKey = localStorage.getItem("ytpro_premium_key") || "";
 
 ytpSetI.innerHTML=`<style>
 @keyframes ytpSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -861,78 +859,6 @@ ytpSetI.innerHTML=`<style>
   background:transparent;border:none;color:#aaa;font-size:22px;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;
 }
 #ssprodivI .ytp-close-btn:hover { background:#252525;color:#fff; }
-
-/* PAINEL DE ATIVAÇÃO DE CHAVE */
-#ssprodivI .ytp-key-container {
-  background:linear-gradient(180deg,#1a1a1a 0%,#111111 100%);
-  border:1px solid #2d2d2d;
-  border-radius:18px;
-  padding:24px 20px;
-  margin:12px 0 16px 0;
-  text-align:center;
-  box-shadow:0 8px 30px rgba(0,0,0,0.6);
-  position:relative;
-  overflow:hidden;
-}
-#ssprodivI .ytp-key-container::before {
-  content:"";
-  position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,#ff0000,#ff4d4d,#ff0000);
-}
-#ssprodivI .ytp-key-logo {
-  display:flex;justify-content:center;align-items:center;margin-bottom:8px;
-}
-#ssprodivI .ytp-key-logo svg {
-  width:56px;height:40px;filter:drop-shadow(0 4px 10px rgba(255,0,0,0.4));
-}
-#ssprodivI .ytp-key-title {
-  font-size:20px;font-weight:800;color:#ffffff;letter-spacing:0.5px;margin-bottom:2px;font-family:inherit;
-}
-#ssprodivI .ytp-key-subtitle {
-  font-size:12px;color:#888888;margin-bottom:18px;text-transform:uppercase;letter-spacing:1px;font-weight:500;
-}
-#ssprodivI .ytp-key-input-wrap {
-  width:100%;margin-bottom:12px;
-}
-#ssprodivI .ytp-key-input {
-  width:100%;height:48px;
-  background:#0a0a0a;
-  border:1px solid #333333;
-  border-radius:12px;
-  color:#ffffff;
-  padding:0 16px;
-  font-size:14px;
-  font-family:inherit;
-  outline:none;
-  text-align:center;
-  letter-spacing:1px;
-  transition:border-color 0.2s, box-shadow 0.2s;
-}
-#ssprodivI .ytp-key-input:focus {
-  border-color:#ff0000;
-  box-shadow:0 0 12px rgba(255,0,0,0.3);
-}
-#ssprodivI .ytp-key-btn {
-  width:100%;height:48px;
-  background:linear-gradient(135deg,#ff0000 0%,#cc0000 100%);
-  border:none;
-  border-radius:12px;
-  color:#ffffff;
-  font-size:15px;
-  font-weight:700;
-  letter-spacing:0.8px;
-  text-transform:uppercase;
-  cursor:pointer;
-  font-family:inherit;
-  box-shadow:0 4px 15px rgba(255,0,0,0.4);
-  transition:transform 0.15s, box-shadow 0.15s;
-}
-#ssprodivI .ytp-key-btn:active {
-  transform:scale(0.98);
-}
-#ssprodivI .ytp-key-status {
-  font-size:12px;margin-top:10px;font-weight:600;min-height:18px;
-}
 
 #ssprodivI .ytp-tabs-bar {
   display:flex;gap:8px;padding:10px 16px;overflow-x:auto;background:#141414;border-bottom:1px solid #222;scrollbar-width:none;
@@ -1003,7 +929,6 @@ ytpSetI.innerHTML+=`
 
 <div class="ytp-tabs-bar">
   <button class="ytp-chip active" data-tab="all">Todos</button>
-  <button class="ytp-chip" data-tab="key">🔑 Ativação</button>
   <button class="ytp-chip" data-tab="tvbox">📺 Smart TV</button>
   <button class="ytp-chip" data-tab="audio">🔊 Áudio +</button>
   <button class="ytp-chip" data-tab="tools">🛠️ Utilitários</button>
@@ -1016,29 +941,6 @@ ytpSetI.innerHTML+=`
 </div>
 
 <div class="ytp-content">
-
-  <!-- PAINEL DE ATIVAÇÃO DA KEY CONFORME SOLICITADO -->
-  <div class="ytp-sec" data-category="key">
-    <div class="ytp-key-container">
-      <div class="ytp-key-logo">
-        <svg viewBox="0 0 24 24">
-          <path fill="#ff0000" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
-          <polygon fill="#ffffff" points="9.545,15.568 15.818,12 9.545,8.432"/>
-        </svg>
-      </div>
-      <div class="ytp-key-title">YouTube Premium</div>
-      <div class="ytp-key-subtitle">Ativação de Assinatura</div>
-
-      <div class="ytp-key-input-wrap">
-        <input type="text" id="ytproLicenseKeyInput" class="ytp-key-input" placeholder="Cole sua chave aqui..." value="${savedKey}">
-      </div>
-
-      <button class="ytp-key-btn" data-action="activatePremiumKey">Ativar Premium</button>
-      <div id="ytproKeyStatus" class="ytp-key-status" style="color:${isKeyActive ? "#00e676" : "#ff5252"};">
-        ${isKeyActive ? "✅ YouTube Premium Ativado com Sucesso!" : "Insira sua chave para desbloquear todos os recursos"}
-      </div>
-    </div>
-  </div>
 
   <input type="url" placeholder="Cole o link de um vídeo do YouTube..." id="ytproUrlInput" class="ytp-input-box">
 
@@ -1321,26 +1223,6 @@ var actionsList={
   closeMenu: () => {
     if(window.location.hash === "#settings") history.back();
     else ytpSet.remove();
-  },
-  activatePremiumKey: () => {
-    const input = document.getElementById("ytproLicenseKeyInput");
-    const status = document.getElementById("ytproKeyStatus");
-    const val = (input?.value || "").trim();
-    if(!val) {
-      if(status) {
-        status.textContent = "⚠️ Por favor, insira uma chave para ativar.";
-        status.style.color = "#ff5252";
-      }
-      showCustomToast("Insira uma chave válida");
-      return;
-    }
-    localStorage.setItem("ytpro_premium_key", val);
-    localStorage.setItem("ytpro_premium_active", "true");
-    if(status) {
-      status.textContent = "✅ YouTube Premium Ativado com Sucesso!";
-      status.style.color = "#00e676";
-    }
-    showCustomToast("🎉 YouTube Premium Ativado!");
   },
   openDownMenu: () => { showDownloadMenu(); },
   downThumbDirect: () => { downloadCurrentThumbnail(); },

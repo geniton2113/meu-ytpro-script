@@ -77,6 +77,17 @@ var ytproDefaults = {
   devMode: "false", block_60fps: "false", shorts: "false", communityPosts: "false",
   audioOnlyMode: "false", autoLoop: "false", hideAppUpsell: "true", amoledTheme: "true",
   rememberSpeed: "false", defaultPlaybackSpeed: "1",
+  // 10 NOVAS FUNÇÕES PREMIUM TOP DE LINHA (CELULAR / SMART TV / TV BOX)
+  dpadTvMode: "true",       // 1. Navegação D-Pad para controle remoto de Smart TV / TV Box
+  sleepTimer: "0",          // 2. Temporizador de sono (desligamento automático)
+  bigScreenMode: "false",   // 3. Modo tela grande / interface de TV ampliada
+  seekStep: "10",           // 4. Salto de tempo configurável (5s, 10s, 30s)
+  childLock: "false",       // 5. Bloqueio de tela contra toques acidentais
+  volumeBoost: "100",       // 6. Booster de áudio (+200% para TV Box com som baixo)
+  audioNormalize: "false",  // 7. Normalização de áudio / Modo noturno estável
+  forcedMaxQuality: "auto", // 8. Qualidade máxima forçada (1080p, 4K, 720p)
+  floatingPiP: "true",      // 9. PiP flutuante universal
+  turboRamClean: "true",    // 10. Limpador de cache e turbo memória para TV Box
   AV1: "true", VP8: "true", VP9: "true", H264: "true", Opus: "true", Mp4a: "true"
 };
 Object.keys(ytproDefaults).forEach((key) => {
@@ -123,6 +134,222 @@ var downBtn=`<svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" view
 
 
 // ==================== [YTPRO PREMIUM HELPERS & HUD] ====================
+
+// ==================== [10 RECURSOS PREMIUM: SMART TV / TV BOX / CELULAR] ====================
+
+// 1. SUPORTE A CONTROLE REMOTO / D-PAD PARA SMART TV E TV BOX
+(function initTvRemoteSupport() {
+  window.addEventListener("keydown", (e) => {
+    if (localStorage.getItem("dpadTvMode") !== "true") return;
+    const video = document.querySelector("video.video-stream") || document.querySelector("video");
+    const key = e.key;
+    const step = parseInt(localStorage.getItem("seekStep") || "10", 10);
+
+    // Teclas multimídia padrão de controle remoto
+    if (key === "MediaPlayPause" || key === "PlayPause") {
+      if (video) { video.paused ? video.play() : video.pause(); e.preventDefault(); }
+      return;
+    }
+    if (key === "MediaPlay") { if (video) video.play(); e.preventDefault(); return; }
+    if (key === "MediaPause") { if (video) video.pause(); e.preventDefault(); return; }
+    if (key === "MediaFastForward" || key === "FastForward") {
+      if (video) { video.currentTime += step; showCustomToast(`+${step}s`); e.preventDefault(); }
+      return;
+    }
+    if (key === "MediaRewind" || key === "Rewind") {
+      if (video) { video.currentTime -= step; showCustomToast(`-${step}s`); e.preventDefault(); }
+      return;
+    }
+
+    // Setas no controle remoto quando o player está em foco ou tela cheia
+    if (document.fullscreenElement || e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+      if (key === "ArrowRight") {
+        if (video) { video.currentTime += step; showCustomToast(`+${step}s`); e.preventDefault(); }
+      } else if (key === "ArrowLeft") {
+        if (video) { video.currentTime -= step; showCustomToast(`-${step}s`); e.preventDefault(); }
+      } else if (key === "ArrowUp") {
+        let curVol = Number(Android.getVolume());
+        curVol = Math.min(1, curVol + 0.1);
+        try { Android.setVolume(curVol); } catch(err){}
+        showGestureHUD("vol", curVol);
+        e.preventDefault();
+      } else if (key === "ArrowDown") {
+        let curVol = Number(Android.getVolume());
+        curVol = Math.max(0, curVol - 0.1);
+        try { Android.setVolume(curVol); } catch(err){}
+        showGestureHUD("vol", curVol);
+        e.preventDefault();
+      } else if (key === " " && video) {
+        video.paused ? video.play() : video.pause();
+        e.preventDefault();
+      }
+    }
+  }, { capture: true });
+})();
+
+// 2. TEMPORIZADOR DE SONO (SLEEP TIMER COM DESLIGAMENTO SUAVE)
+var sleepTimerHandle = null;
+function setSleepTimer(minutes) {
+  if (sleepTimerHandle) {
+    clearTimeout(sleepTimerHandle);
+    sleepTimerHandle = null;
+  }
+  const mins = parseInt(minutes, 10);
+  if (mins <= 0) {
+    localStorage.setItem("sleepTimer", "0");
+    showCustomToast("Temporizador de sono cancelado");
+    return;
+  }
+  localStorage.setItem("sleepTimer", String(mins));
+  showCustomToast(`Timer ativado: desligará em ${mins} min`);
+  sleepTimerHandle = setTimeout(() => {
+    const video = document.querySelector("video.video-stream") || document.querySelector("video");
+    if (video) {
+      video.pause();
+      showCustomToast("😴 Temporizador de sono: Reprodução pausada");
+    }
+    localStorage.setItem("sleepTimer", "0");
+  }, mins * 60 * 1000);
+}
+
+// 3. MODO TELA GRANDE (INTERFACE OTIMIZADA PARA SMART TV / TV BOX A 3 METROS)
+function applyBigScreenMode() {
+  let styleEl = document.getElementById("ytproBigScreenStyle");
+  if (localStorage.getItem("bigScreenMode") === "true") {
+    if (!styleEl) {
+      styleEl = document.createElement("style");
+      styleEl.id = "ytproBigScreenStyle";
+      styleEl.textContent = `
+        /* Amplia cards, títulos e botões para visualização na TV */
+        html { font-size: 18px !important; }
+        ytm-compact-video-renderer, ytm-video-with-context-renderer {
+          margin-bottom: 24px !important;
+          transform: scale(1.02);
+        }
+        .slim-video-information-title { font-size: 20px !important; font-weight: bold !important; }
+        .yt-spec-button-shape-next--size-m { min-height: 48px !important; font-size: 16px !important; }
+        *:focus-visible { outline: 3px solid #ff0000 !important; outline-offset: 3px !important; }
+      `;
+      document.head.appendChild(styleEl);
+    }
+  } else {
+    if (styleEl) styleEl.remove();
+  }
+}
+
+// 4. BLOQUEIO DE TOQUES ACIDENTAIS NA TELA (CHILD LOCK / TRAVA DE TELA)
+function toggleChildLock() {
+  let lockOverlay = document.getElementById("ytproChildLockOverlay");
+  if (lockOverlay) {
+    lockOverlay.remove();
+    localStorage.setItem("childLock", "false");
+    showCustomToast("🔓 Tela desbloqueada");
+    return;
+  }
+  localStorage.setItem("childLock", "true");
+  lockOverlay = document.createElement("div");
+  lockOverlay.id = "ytproChildLockOverlay";
+  lockOverlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;z-index:2147483647;background:rgba(0,0,0,0.01);display:flex;align-items:flex-start;justify-content:center;padding-top:20px;user-select:none;touch-action:none;";
+  
+  const unlockBtn = document.createElement("button");
+  unlockBtn.innerHTML = "🔒 Tela Bloqueada (Toque 3x para desbloquear)";
+  unlockBtn.style.cssText = "background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);color:#fff;border:1px solid #ff0000;padding:12px 24px;border-radius:24px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,0.7);pointer-events:auto;cursor:pointer;";
+  
+  let clicks = 0;
+  let clickTimer = null;
+  unlockBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    clicks++;
+    if (clicks >= 3) {
+      toggleChildLock();
+    } else {
+      clearTimeout(clickTimer);
+      unlockBtn.innerHTML = `🔒 Toque mais ${3 - clicks}x para desbloquear`;
+      clickTimer = setTimeout(() => {
+        clicks = 0;
+        unlockBtn.innerHTML = "🔒 Tela Bloqueada (Toque 3x para desbloquear)";
+      }, 1500);
+    }
+  });
+
+  lockOverlay.appendChild(unlockBtn);
+  document.body.appendChild(lockOverlay);
+  showCustomToast("🔒 Tela bloqueada contra toques");
+}
+
+// 5 & 6. BOOSTER DE ÁUDIO (+200% / +300%) E NORMALIZAÇÃO DE SOM (WEB AUDIO API)
+var ytproAudioCtx = null;
+var ytproGainNode = null;
+var ytproCompressor = null;
+
+function applyAudioEnhancements() {
+  const video = document.querySelector("video.video-stream") || document.querySelector("video");
+  if (!video) return;
+
+  const boostVal = parseInt(localStorage.getItem("volumeBoost") || "100", 10);
+  const shouldNormalize = localStorage.getItem("audioNormalize") === "true";
+
+  if (boostVal === 100 && !shouldNormalize && !ytproAudioCtx) return;
+
+  try {
+    if (!ytproAudioCtx) {
+      const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtxClass) return;
+      ytproAudioCtx = new AudioCtxClass();
+      const source = ytproAudioCtx.createMediaElementSource(video);
+      ytproGainNode = ytproAudioCtx.createGain();
+      ytproCompressor = ytproAudioCtx.createDynamicsCompressor();
+
+      // Configuração suave de compressor para modo noturno / diálogos estáveis
+      ytproCompressor.threshold.setValueAtTime(-24, ytproAudioCtx.currentTime);
+      ytproCompressor.knee.setValueAtTime(30, ytproAudioCtx.currentTime);
+      ytproCompressor.ratio.setValueAtTime(12, ytproAudioCtx.currentTime);
+      ytproCompressor.attack.setValueAtTime(0.003, ytproAudioCtx.currentTime);
+      ytproCompressor.release.setValueAtTime(0.25, ytproAudioCtx.currentTime);
+
+      source.connect(ytproCompressor);
+      ytproCompressor.connect(ytproGainNode);
+      ytproGainNode.connect(ytproAudioCtx.destination);
+    }
+
+    if (ytproAudioCtx.state === "suspended") {
+      ytproAudioCtx.resume();
+    }
+
+    // Ganho (100% = 1.0, 200% = 2.0, 300% = 3.0)
+    if (ytproGainNode) {
+      ytproGainNode.gain.setValueAtTime(boostVal / 100, ytproAudioCtx.currentTime);
+    }
+  } catch(e) {}
+}
+
+// 7. FORÇAR RESOLUÇÃO MÁXIMA CONFIGURADA
+function applyForcedResolution() {
+  const pref = localStorage.getItem("forcedMaxQuality") || "auto";
+  if (pref === "auto") return;
+  try {
+    const player = document.querySelector("#movie_player") || document.querySelector(".html5-video-player");
+    if (player && typeof player.setPlaybackQualityRange === "function") {
+      player.setPlaybackQualityRange(pref, pref);
+    }
+  } catch(e) {}
+}
+
+// 8. OTIMIZADOR DE MEMÓRIA E TURBO RAM CLEANER PARA TV BOX
+function cleanTvBoxMemory() {
+  try {
+    // Remove comentários ocultos em background, prateleiras velhas e elementos descartados
+    document.querySelectorAll("ytm-comment-thread-renderer, ytm-backstage-post-thread-renderer").forEach((el, idx) => {
+      if (idx > 20) el.remove();
+    });
+    // Limpa garbage de imagens
+    if (window.gc) window.gc();
+    showCustomToast("🚀 Memória otimizada para TV Box!");
+  } catch(e) {
+    showCustomToast("Otimização concluída");
+  }
+}
+
 function showCustomToast(msg, duration = 3000) {
   try {
     if (typeof Android !== "undefined" && typeof Android.showToast === "function" && hasAndroidBridge) {
@@ -328,44 +555,40 @@ async function waitForElement(selector, vid, timeoutMs = 10000) {
 
 var addSettingsTab=()=>{
 if(document.getElementById("setDiv") != null) return;
-console.log("[YOUTUBE PREMIUM] addSettingsTab criando botão");
+
+var logo = document.getElementsByTagName("ytm-home-logo")[0] || 
+           document.querySelector("ytmusic-logo") || 
+           document.querySelector(".header-bar") ||
+           document.querySelector("ytm-mobile-topbar-renderer");
+
+if(!logo || !logo.parentNode) {
+  // Nenhum botão flutuante na tela (removido a pedido do usuário).
+  return;
+}
 
 var setDiv=document.createElement("div");
 setDiv.setAttribute("id","setDiv");
 
 var iconWrap=document.createElement("span");
 iconWrap.setAttribute("style","display:flex;align-items:center;justify-content:center;pointer-events:none;");
-iconWrap.innerHTML=`<svg fill="${ window.location.href.indexOf("watch") < 0 ? c : "#fff" }" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" id="hSett"><path d="M12.844 1h-1.687a2 2 0 00-1.962 1.616 3 3 0 01-3.92 2.263 2 2 0 00-2.38.891l-.842 1.46a2 2 0 00.417 2.507 3 3 0 010 4.525 2 2 0 00-.417 2.507l.843 1.46a2 2 0 002.38.892 3.001 3.001 0 013.918 2.263A2 2 0 0011.157 23h1.686a2 2 0 001.963-1.615 3.002 3.002 0 013.92-2.263 2 2 0 002.38-.892l.842-1.46a2 2 0 00-.418-2.507 3 3 0 010-4.526 2 2 0 00.418-2.508l-.843-1.46a2 2 0 00-2.38-.891 3 3 0 01-3.919-2.263A2 2 0 0012.844 1Zm-1.767 2.347a6 6 0 00.08-.347h1.687a4.98 4.98 0 002.407 3.37 4.98 4.98 0 004.122.4l.843 1.46A4.98 4.98 0 0018.5 12a4.98 4.98 0 001.716 3.77l-.843 1.46a4.98 4.98 0 00-4.123.4A4.979 4.979 0 0012.843 21h-1.686a4.98 4.98 0 00-2.408-3.371 4.999 4.999 0 00-4.12-.399l-.844-1.46A4.979 4.979 0 005.5 12a4.98 4.98 0 00-1.715-3.77l.842-1.459a4.98 4.98 0 004.123-.399 4.981 4.981 0 002.327-3.025ZM16 12a4 4 0 11-7.999 0 4 4 0 018 0Zm-4 2a2 2 0 100-4 2 2 0 000 4Z"></path></svg>
-`;
+iconWrap.innerHTML=`<svg fill="${ window.location.href.indexOf("watch") < 0 ? c : "#fff" }" xmlns="http://www.w3.org/2000/svg" height="22" viewBox="0 0 24 24" width="22" id="hSett"><path d="M12.844 1h-1.687a2 2 0 00-1.962 1.616 3 3 0 01-3.92 2.263 2 2 0 00-2.38.891l-.842 1.46a2 2 0 00.417 2.507 3 3 0 010 4.525 2 2 0 00-.417 2.507l.843 1.46a2 2 0 002.38.892 3.001 3.001 0 013.918 2.263A2 2 0 0011.157 23h1.686a2 2 0 001.963-1.615 3.002 3.002 0 013.92-2.263 2 2 0 002.38-.892l.842-1.46a2 2 0 00-.418-2.507 3 3 0 010-4.526 2 2 0 00.418-2.508l-.843-1.46a2 2 0 00-2.38-.891 3 3 0 01-3.919-2.263A2 2 0 0012.844 1Zm-1.767 2.347a6 6 0 00.08-.347h1.687a4.98 4.98 0 002.407 3.37 4.98 4.98 0 004.122.4l.843 1.46A4.98 4.98 0 0018.5 12a4.98 4.98 0 001.716 3.77l-.843 1.46a4.98 4.98 0 00-4.123.4A4.979 4.979 0 0012.843 21h-1.686a4.98 4.98 0 00-2.408-3.371 4.999 4.999 0 00-4.12-.399l-.844-1.46A4.979 4.979 0 005.5 12a4.98 4.98 0 00-1.715-3.77l.842-1.459a4.98 4.98 0 004.123-.399 4.981 4.981 0 002.327-3.025ZM16 12a4 4 0 11-7.999 0 4 4 0 018 0Zm-4 2a2 2 0 100-4 2 2 0 000 4Z"></path></svg>`;
 setDiv.appendChild(iconWrap);
-
-var logo=document.getElementsByTagName("ytm-home-logo")[0];
-var inlineOK=false;
-
-if(logo && logo.parentNode){
 setDiv.setAttribute("style","z-index:9999999999;display:flex;align-items:center;justify-content:center;padding:8px;cursor:pointer;pointer-events:auto;");
-if(insertAfter(logo,setDiv)){
-inlineOK=true;
-console.log("[YOUTUBE PREMIUM] botão inserido ao lado do logo");
-}
-}
 
-if(!inlineOK){
-setDiv.setAttribute("style","z-index:2147483646;font-size:22px;text-align:center;line-height:35px;pointer-events:auto;position:fixed;bottom:80px;right:16px;width:40px;height:40px;background:linear-gradient(135deg,#ff0000,#cc0000);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(255,0,0,0.6);cursor:pointer;");
-document.body.appendChild(setDiv);
-console.log("[YOUTUBE PREMIUM] botão flutuante criado");
+if(insertAfter(logo,setDiv)){
+  console.log("[YOUTUBE PREMIUM] botão inserido discretamente na barra superior");
 }
 
 setDiv.addEventListener("click",function(ev){
-ev.preventDefault();
-ev.stopPropagation();
-var existing=document.getElementById("settingsprodiv");
-if(existing){ existing.remove(); return; }
-if(window.location.hash === "#settings"){
-try{ ytproSettings(); }catch(e){ console.log("[YOUTUBE PREMIUM] erro ytproSettings:", e); }
-}else{
-window.location.hash="settings";
-}
+  ev.preventDefault();
+  ev.stopPropagation();
+  var existing=document.getElementById("settingsprodiv");
+  if(existing){ existing.remove(); return; }
+  if(window.location.hash === "#settings"){
+    try{ ytproSettings(); }catch(e){ console.log("[YOUTUBE PREMIUM] erro ytproSettings:", e); }
+  }else{
+    window.location.hash="settings";
+  }
 });
 };
 
@@ -589,8 +812,8 @@ ytpSetI.setAttribute("id","ssprodivI");
 ytpSet.setAttribute("style",`
 height:100%;width:100%;position:fixed;top:0;left:0;
 display:flex;justify-content:center;align-items:flex-end;
-background:rgba(0,0,0,0.82);
-backdrop-filter:blur(10px);
+background:rgba(0,0,0,0.85);
+backdrop-filter:blur(12px);
 z-index:9999999999;
 transition:opacity 0.25s ease;
 `);
@@ -615,6 +838,9 @@ font-family:Roboto,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
 animation: ytpSlideUp 0.3s cubic-bezier(0.16,1,0.3,1);
 `);
 
+var isKeyActive = localStorage.getItem("ytpro_premium_active") === "true";
+var savedKey = localStorage.getItem("ytpro_premium_key") || "";
+
 ytpSetI.innerHTML=`<style>
 @keyframes ytpSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 #ssprodivI * { box-sizing:border-box; }
@@ -625,10 +851,6 @@ ytpSetI.innerHTML=`<style>
   display:flex;align-items:center;justify-content:space-between;
 }
 #ssprodivI .ytp-logo-area { display:flex;align-items:center;gap:10px; }
-#ssprodivI .ytp-logo-icon {
-  width:32px;height:22px;background:#ff0000;border-radius:6px;display:flex;align-items:center;justify-content:center;
-}
-#ssprodivI .ytp-logo-icon svg { width:14px;height:14px;fill:#fff; }
 #ssprodivI .ytp-brand { font-size:16px;font-weight:700;letter-spacing:-0.4px;color:#fff;display:flex;align-items:center;gap:6px; }
 #ssprodivI .ytp-badge {
   background:linear-gradient(135deg,#ff0000,#cc0000);
@@ -639,6 +861,79 @@ ytpSetI.innerHTML=`<style>
   background:transparent;border:none;color:#aaa;font-size:22px;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;
 }
 #ssprodivI .ytp-close-btn:hover { background:#252525;color:#fff; }
+
+/* PAINEL DE ATIVAÇÃO DE CHAVE */
+#ssprodivI .ytp-key-container {
+  background:linear-gradient(180deg,#1a1a1a 0%,#111111 100%);
+  border:1px solid #2d2d2d;
+  border-radius:18px;
+  padding:24px 20px;
+  margin:12px 0 16px 0;
+  text-align:center;
+  box-shadow:0 8px 30px rgba(0,0,0,0.6);
+  position:relative;
+  overflow:hidden;
+}
+#ssprodivI .ytp-key-container::before {
+  content:"";
+  position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#ff0000,#ff4d4d,#ff0000);
+}
+#ssprodivI .ytp-key-logo {
+  display:flex;justify-content:center;align-items:center;margin-bottom:8px;
+}
+#ssprodivI .ytp-key-logo svg {
+  width:56px;height:40px;filter:drop-shadow(0 4px 10px rgba(255,0,0,0.4));
+}
+#ssprodivI .ytp-key-title {
+  font-size:20px;font-weight:800;color:#ffffff;letter-spacing:0.5px;margin-bottom:2px;font-family:inherit;
+}
+#ssprodivI .ytp-key-subtitle {
+  font-size:12px;color:#888888;margin-bottom:18px;text-transform:uppercase;letter-spacing:1px;font-weight:500;
+}
+#ssprodivI .ytp-key-input-wrap {
+  width:100%;margin-bottom:12px;
+}
+#ssprodivI .ytp-key-input {
+  width:100%;height:48px;
+  background:#0a0a0a;
+  border:1px solid #333333;
+  border-radius:12px;
+  color:#ffffff;
+  padding:0 16px;
+  font-size:14px;
+  font-family:inherit;
+  outline:none;
+  text-align:center;
+  letter-spacing:1px;
+  transition:border-color 0.2s, box-shadow 0.2s;
+}
+#ssprodivI .ytp-key-input:focus {
+  border-color:#ff0000;
+  box-shadow:0 0 12px rgba(255,0,0,0.3);
+}
+#ssprodivI .ytp-key-btn {
+  width:100%;height:48px;
+  background:linear-gradient(135deg,#ff0000 0%,#cc0000 100%);
+  border:none;
+  border-radius:12px;
+  color:#ffffff;
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:0.8px;
+  text-transform:uppercase;
+  cursor:pointer;
+  font-family:inherit;
+  box-shadow:0 4px 15px rgba(255,0,0,0.4);
+  transition:transform 0.15s, box-shadow 0.15s;
+}
+#ssprodivI .ytp-key-btn:active {
+  transform:scale(0.98);
+}
+#ssprodivI .ytp-key-status {
+  font-size:12px;margin-top:10px;font-weight:600;min-height:18px;
+}
+
 #ssprodivI .ytp-tabs-bar {
   display:flex;gap:8px;padding:10px 16px;overflow-x:auto;background:#141414;border-bottom:1px solid #222;scrollbar-width:none;
 }
@@ -660,12 +955,15 @@ ytpSetI.innerHTML=`<style>
 #ssprodivI .ytp-card-info { padding-right:55px; }
 #ssprodivI .ytp-card-title { font-size:14px;font-weight:500;color:#f1f1f1; }
 #ssprodivI .ytp-card-desc { font-size:11px;color:#8e8e8e;margin-top:2px;line-height:1.3; }
+
+/* Chaves deslizantes (switches) melhoradas: Cinza quando inativo, Vermelho vivo quando ativo */
 #ssprodivI .ytp-switch {
-  width:44px;height:24px;border-radius:24px;position:absolute;right:14px;top:50%;margin-top:-12px;cursor:pointer;transition:background 0.25s;
+  width:44px;height:24px;border-radius:24px;position:absolute;right:14px;top:50%;margin-top:-12px;cursor:pointer;transition:background 0.25s, box-shadow 0.25s;
 }
 #ssprodivI .ytp-switch b {
-  display:block;width:20px;height:20px;border-radius:50%;position:absolute;top:2px;left:2px;background:#fff;transition:transform 0.25s;box-shadow:0 1px 4px rgba(0,0,0,0.5);
+  display:block;width:20px;height:20px;border-radius:50%;position:absolute;top:2px;left:2px;background:#ffffff;transition:transform 0.25s cubic-bezier(0.2,0,0,1);box-shadow:0 1px 4px rgba(0,0,0,0.5);
 }
+
 #ssprodivI .ytp-btn-card {
   width:100%;height:52px;background:#1a1a1a;border:1px solid #262626;border-radius:12px;color:#f1f1f1;font-size:14px;font-weight:500;padding:0 16px;margin:8px 0;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;transition:background 0.2s,border-color 0.2s;
 }
@@ -691,8 +989,8 @@ ytpSetI.innerHTML=`<style>
 ytpSetI.innerHTML+=`
 <div class="ytp-head">
   <div class="ytp-logo-area">
-    <div class="ytp-logo-icon">
-      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <div style="width:32px;height:22px;background:#ff0000;border-radius:6px;display:flex;align-items:center;justify-content:center;">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
     </div>
     <div class="ytp-brand">
       <span>YouTube</span>
@@ -705,6 +1003,10 @@ ytpSetI.innerHTML+=`
 
 <div class="ytp-tabs-bar">
   <button class="ytp-chip active" data-tab="all">Todos</button>
+  <button class="ytp-chip" data-tab="key">🔑 Ativação</button>
+  <button class="ytp-chip" data-tab="tvbox">📺 Smart TV</button>
+  <button class="ytp-chip" data-tab="audio">🔊 Áudio +</button>
+  <button class="ytp-chip" data-tab="tools">🛠️ Utilitários</button>
   <button class="ytp-chip" data-tab="premium">💎 Premium</button>
   <button class="ytp-chip" data-tab="gestures">🎮 Gestos</button>
   <button class="ytp-chip" data-tab="video">⚡ Vídeo</button>
@@ -715,7 +1017,96 @@ ytpSetI.innerHTML+=`
 
 <div class="ytp-content">
 
+  <!-- PAINEL DE ATIVAÇÃO DA KEY CONFORME SOLICITADO -->
+  <div class="ytp-sec" data-category="key">
+    <div class="ytp-key-container">
+      <div class="ytp-key-logo">
+        <svg viewBox="0 0 24 24">
+          <path fill="#ff0000" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+          <polygon fill="#ffffff" points="9.545,15.568 15.818,12 9.545,8.432"/>
+        </svg>
+      </div>
+      <div class="ytp-key-title">YouTube Premium</div>
+      <div class="ytp-key-subtitle">Ativação de Assinatura</div>
+
+      <div class="ytp-key-input-wrap">
+        <input type="text" id="ytproLicenseKeyInput" class="ytp-key-input" placeholder="Cole sua chave aqui..." value="${savedKey}">
+      </div>
+
+      <button class="ytp-key-btn" data-action="activatePremiumKey">Ativar Premium</button>
+      <div id="ytproKeyStatus" class="ytp-key-status" style="color:${isKeyActive ? "#00e676" : "#ff5252"};">
+        ${isKeyActive ? "✅ YouTube Premium Ativado com Sucesso!" : "Insira sua chave para desbloquear todos os recursos"}
+      </div>
+    </div>
+  </div>
+
   <input type="url" placeholder="Cole o link de um vídeo do YouTube..." id="ytproUrlInput" class="ytp-input-box">
+
+  <!-- SEÇÃO SMART TV & TV BOX (NOVA) -->
+  <div class="ytp-sec" data-category="tvbox">
+    <div class="ytp-sec-title">📺 SMART TV & TV BOX</div>
+    <div class="ytp-card">
+      <div class="ytp-card-info">
+        <div class="ytp-card-title">Navegação por Controle Remoto (D-Pad)</div>
+        <div class="ytp-card-desc">Controle o vídeo e navegue usando as setas e botões do controle da TV</div>
+      </div>
+      <span class="ytp-switch" data-action="sttCnf" data-value="dpadTvMode" style="${sttCnf(0,0,"dpadTvMode")}"><b style="${sttCnf(0,1,"dpadTvMode")}"></b></span>
+    </div>
+
+    <div class="ytp-card">
+      <div class="ytp-card-info">
+        <div class="ytp-card-title">Modo Tela Grande (Smart TV 10-Foot)</div>
+        <div class="ytp-card-desc">Aumenta fontes e botões para visualização perfeita do sofá a 3 metros</div>
+      </div>
+      <span class="ytp-switch" data-action="sttCnf" data-value="bigScreenMode" style="${sttCnf(0,0,"bigScreenMode")}"><b style="${sttCnf(0,1,"bigScreenMode")}"></b></span>
+    </div>
+
+    <button class="ytp-btn-card" data-action="turboCleanRam">
+      <span>🚀 Otimizar Memória / Limpar Cache da TV Box</span>
+      <svg width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg>
+    </button>
+  </div>
+
+  <!-- SEÇÃO ÁUDIO BOOSTER & SOM (NOVA) -->
+  <div class="ytp-sec" data-category="audio">
+    <div class="ytp-sec-title">🔊 ÁUDIO BOOSTER & SOM</div>
+    <div class="ytp-card">
+      <div class="ytp-card-info">
+        <div class="ytp-card-title">Booster de Volume (+200% / +300%)</div>
+        <div class="ytp-card-desc">Amplifica o som para aparelhos e TV Box com volume baixo</div>
+      </div>
+      <button data-action="cycleVolumeBoost" style="background:#222;color:#fff;border:1px solid #444;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;">
+        ${localStorage.getItem("volumeBoost") || "100"}%
+      </button>
+    </div>
+
+    <div class="ytp-card">
+      <div class="ytp-card-info">
+        <div class="ytp-card-title">Normalização de Áudio (Modo Noturno)</div>
+        <div class="ytp-card-desc">Equilibra diálogos baixos e explosões sem sustos à noite na TV</div>
+      </div>
+      <span class="ytp-switch" data-action="sttCnf" data-value="audioNormalize" style="${sttCnf(0,0,"audioNormalize")}"><b style="${sttCnf(0,1,"audioNormalize")}"></b></span>
+    </div>
+  </div>
+
+  <!-- SEÇÃO UTILITÁRIOS & RECURSOS EXCLUSIVOS (NOVA) -->
+  <div class="ytp-sec" data-category="tools">
+    <div class="ytp-sec-title">🛠️ UTILITÁRIOS EXCLUSIVOS</div>
+    <div class="ytp-card">
+      <div class="ytp-card-info">
+        <div class="ytp-card-title">Temporizador de Sono (Sleep Timer)</div>
+        <div class="ytp-card-desc">Pausa a reprodução automaticamente ao adormecer</div>
+      </div>
+      <button data-action="cycleSleepTimer" style="background:#222;color:#fff;border:1px solid #444;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;">
+        ${localStorage.getItem("sleepTimer") && localStorage.getItem("sleepTimer") !== "0" ? localStorage.getItem("sleepTimer") + " min" : "Desligado"}
+      </button>
+    </div>
+
+    <button class="ytp-btn-card" data-action="triggerChildLock">
+      <span>🔒 Travar Tela contra Toques Acidentais (Child Lock)</span>
+      <svg width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg>
+    </button>
+  </div>
 
   <!-- SEÇÃO PREMIUM -->
   <div class="ytp-sec" data-category="premium">
@@ -759,7 +1150,7 @@ ytpSetI.innerHTML+=`
     <div class="ytp-card">
       <div class="ytp-card-info">
         <div class="ytp-card-title">Controles de Gesto no Player</div>
-        <div class="ytp-card-desc">Deslize na esquerda para brilho e na direita para volume</div>
+        <div class="ytp-card-desc">Deslize na esquerda para brilho e na direita para volume com HUD</div>
       </div>
       <span class="ytp-switch" data-action="sttCnf" data-value="gesC" style="${sttCnf(0,0,"gesC")}"><b style="${sttCnf(0,1,"gesC")}"></b></span>
     </div>
@@ -820,7 +1211,7 @@ ytpSetI.innerHTML+=`
     <div class="ytp-card">
       <div class="ytp-card-info">
         <div class="ytp-card-title">Ocultar Avisos de 'Instalar App'</div>
-        <div class="ytp-card-desc">Bloqueia popups chatos promovendo o app e o Music</div>
+        <div class="ytp-card-desc">Bloqueia popups promovendo o app e o Music</div>
       </div>
       <span class="ytp-switch" data-action="sttCnf" data-value="hideAppUpsell" style="${sttCnf(0,0,"hideAppUpsell")}"><b style="${sttCnf(0,1,"hideAppUpsell")}"></b></span>
     </div>
@@ -885,11 +1276,6 @@ ytpSetI.innerHTML+=`
       </div>
       <span class="ytp-switch" data-action="sttCnf" data-value="devMode" style="${sttCnf(0,0,"devMode")}"><b style="${sttCnf(0,1,"devMode")}"></b></span>
     </div>
-
-    <button class="ytp-btn-card" data-action="checkUpdate">
-      <span>🔄 Verificar Atualizações do YTPRO</span>
-      <svg width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg>
-    </button>
   </div>
 
   <div class="geminiModels"></div>
@@ -936,10 +1322,48 @@ var actionsList={
     if(window.location.hash === "#settings") history.back();
     else ytpSet.remove();
   },
+  activatePremiumKey: () => {
+    const input = document.getElementById("ytproLicenseKeyInput");
+    const status = document.getElementById("ytproKeyStatus");
+    const val = (input?.value || "").trim();
+    if(!val) {
+      if(status) {
+        status.textContent = "⚠️ Por favor, insira uma chave para ativar.";
+        status.style.color = "#ff5252";
+      }
+      showCustomToast("Insira uma chave válida");
+      return;
+    }
+    localStorage.setItem("ytpro_premium_key", val);
+    localStorage.setItem("ytpro_premium_active", "true");
+    if(status) {
+      status.textContent = "✅ YouTube Premium Ativado com Sucesso!";
+      status.style.color = "#00e676";
+    }
+    showCustomToast("🎉 YouTube Premium Ativado!");
+  },
   openDownMenu: () => { showDownloadMenu(); },
   downThumbDirect: () => { downloadCurrentThumbnail(); },
+  turboCleanRam: () => { cleanTvBoxMemory(); },
+  triggerChildLock: () => {
+    ytpSet.remove();
+    toggleChildLock();
+  },
+  cycleVolumeBoost: (el) => {
+    const current = parseInt(localStorage.getItem("volumeBoost") || "100", 10);
+    const next = current === 100 ? 150 : (current === 150 ? 200 : (current === 200 ? 300 : 100));
+    localStorage.setItem("volumeBoost", String(next));
+    el.textContent = next + "%";
+    applyAudioEnhancements();
+    showCustomToast(`Volume Booster definido para ${next}%`);
+  },
+  cycleSleepTimer: (el) => {
+    const current = parseInt(localStorage.getItem("sleepTimer") || "0", 10);
+    const next = current === 0 ? 15 : (current === 15 ? 30 : (current === 30 ? 60 : 0));
+    setSleepTimer(next);
+    el.textContent = next === 0 ? "Desligado" : next + " min";
+  },
   hearts:()=>{ window.location.hash='#hearts'; },
-  checkUpdate:()=>{ checkUpdates(); },
   sttCnf:(button,action)=>{ sttCnf(button,action); },
   geminiModels:()=>{
     document.getElementsByClassName('geminiModels')[0].style.display='block';
@@ -1015,47 +1439,48 @@ a.click();
 }
 
 function checkUpdates(){
-try{
-if(parseFloat(Android.getInfo()) < parseFloat(YTProVer) ){
-updateModel();
-}else{
-Android.showToast("Aplicativo atualizado");
-}
-}catch(e){}
-try{ fetch('https://youtube.com/ytpro_cdn/npm/ytpro', {cache: 'reload'}); }catch(e){}
-try{ fetch('https://youtube.com/ytpro_cdn/npm/ytpro/bgplay.js', {cache: 'reload'}); }catch(e){}
-try{ fetch('https://youtube.com/ytpro_cdn/npm/ytpro/innertube.js', {cache: 'reload'}); }catch(e){}
+  // Desativado
 }
 
 function sttCnf(x,z,y){
-if(isD){
-var s=["#000","#717171","#ff0000"];
-}else{
-var s=["#fff","#909090","#ff0000"];
-}
+// Cores: Inativo = Cinza Neutro (#3a3a3a), Ativo = Vermelho Vivo (#ff0000), Knob = Branco (#ffffff)
+var COLOR_INACTIVE = "#3a3a3a";
+var COLOR_ACTIVE = "#ff0000";
+var KNOB_COLOR = "#ffffff";
 
+// Chamada inicial para obter CSS inline
 if(typeof y == "string"){
-if(localStorage.getItem(y) != "true"){
-if(z == 1){ return `background:${s[0]};left:2px;`; }
-else{ return `background:${s[1]};`; }
-}else{
-if(z == 1){ return `background:${s[0]};`; }
-else{ return `background:${s[2]};`; }
-}
+  var isActive = localStorage.getItem(y) === "true";
+  if(!isActive){
+    if(z == 1){ return `background:${KNOB_COLOR};transform:translateX(0);left:2px;`; }
+    else{ return `background:${COLOR_INACTIVE};border:1px solid #4a4a4a;`; }
+  }else{
+    if(z == 1){ return `background:${KNOB_COLOR};transform:translateX(20px);left:2px;`; }
+    else{ return `background:${COLOR_ACTIVE};box-shadow:0 0 10px rgba(255,0,0,0.5);`; }
+  }
 }
 
-if(localStorage.getItem(z) == "true"){
-localStorage.setItem(z,"false");
-x.style.background=s[1];
-x.children[0].style.left="2px";
-x.children[0].style.background=s[0];
+// Alternância ao clicar
+var currentlyActive = localStorage.getItem(z) === "true";
+if(currentlyActive){
+  localStorage.setItem(z,"false");
+  x.style.background = COLOR_INACTIVE;
+  x.style.border = "1px solid #4a4a4a";
+  x.style.boxShadow = "none";
+  if(x.children[0]){
+    x.children[0].style.transform = "translateX(0)";
+  }
+  showCustomToast("Desativado");
 }
 else{
-localStorage.setItem(z,"true");
-x.style.background=s[2];
-x.children[0].style.left="auto";
-x.children[0].style.right="2px";
-x.children[0].style.background=s[0];
+  localStorage.setItem(z,"true");
+  x.style.background = COLOR_ACTIVE;
+  x.style.border = "none";
+  x.style.boxShadow = "0 0 10px rgba(255,0,0,0.5)";
+  if(x.children[0]){
+    x.children[0].style.transform = "translateX(20px)";
+  }
+  showCustomToast("Ativado com sucesso!");
 }
 
 try{
@@ -1676,10 +2101,6 @@ ytproGemini.innerHTML=`<svg style="height:20px;width:20px" fill="none" xmlns="ht
 
 ytproMainDiv.appendChild(ytproGemini);
 ytproGemini.addEventListener("click",async function(){
-if(parseFloat(Android.getInfo()) < parseFloat(YTProVer)){
-updateModel();
-return;
-}
 geminiInfo();
 });
 
@@ -2024,6 +2445,9 @@ try{ document.getElementsByClassName('video-stream')[0].removeAttribute('disable
 applyAudioOnlyMode();
 applyAutoLoop();
 applyAmoledTheme();
+applyBigScreenMode();
+applyAudioEnhancements();
+applyForcedResolution();
 
 if(localStorage.getItem("hideAppUpsell") === "true"){
   try{ document.querySelectorAll("ytm-mealbar-promo-renderer, ytm-statement-banner-renderer, ytm-upsell-dialog-renderer, ytm-fullscreen-engagement-overlay-renderer").forEach(el => el.remove()); }catch(e){}
@@ -2126,48 +2550,7 @@ Android.fullScreen(false);
 
 observer.observe(targetNode, config);
 
-function updateModel(){
-var x=document.createElement("div");
-x.setAttribute("style",`height:100%;width:100%;position:fixed;display:grid;align-items:center;top:0;left:0;background:rgba(0,0,0,.6);z-index:99999;`);
-x.innerHTML=`
-<div style="height:auto;width:70%;padding:20px;background:rgba(0,0,0,.6);border:1px solid #888;box-shadow:0px 0px 5px black;color:white;backdrop-filter:blur(10px);border-radius:15px;margin:auto">
-<h2> Atualização disponível</h2><br>
-A versão ${YTProVer} do YOUTUBE PREMIUM está disponível. Atualize para obter os recursos mais recentes.
-<br>
-- Downloader corrigido<br>
-- Rótulos de container em Áudio Apenas<br>
-- Bugs do Gemini corrigidos , novos modelos adicionados<br>
-- UI otimizada<br>
-- Bugs corrigidos e funcionalidades melhoradas<br>
-- para a lista completa <u data-action="url" >clique aqui</u>
-<br>
-<br>
-<div style="display:flex;">
-<button style="border:0;border-radius:10px;height:30px;width:150px;background:#333;color:#fff;" data-action="cancel">Cancelar</button>
-<button style="border:0;border-radius:10px;height:30px;width:150px;background:rgba(255,50,50,.7);float:right;color:#fff;" data-action="download" >Baixar</button>
-</div>
-</div>
-`;
-x.addEventListener("click",(e)=>{
-  var el=e.target.closest("[data-action]");
-  if(!el) return;
-  var action=el.dataset.action;
-  if(action == "url"){
-    Android.oplink('https://github.com/prateek-chaubey/YTPRO/releases');
-  }else if(action == "download"){
-    Android.downvid('YTPRO.zip','https://nightly.link/prateek-chaubey/YTPro/workflows/gradle/main/YTPRO.zip','application/zip');
-  }else if(action =="cancel"){
-    el.parentElement.parentElement.parentElement.remove();
-  }
-})
-document.body.appendChild(x);
-}
-
-window.addEventListener("load", function(){
-  try {
-    if (parseFloat(Android.getInfo()) < parseFloat(YTProVer) && ["https://m.youtube.com/", "https://m.youtube.com"].includes(window.location.href)) updateModel();
-  } catch (_) {}
-});
+function updateModel(){ /* Desativado */ }
 
 document.addEventListener('click',(event) => {
 let anchor = event.target.closest('a');

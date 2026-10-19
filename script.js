@@ -7,7 +7,7 @@
  */
 /*****YOUTUBE PREMIUM*******
 Baseado no YTPRO original
-Versão: 5.0.0 (YouTube Premium Ultimate)
+Versão: 5.4.0 (YouTube Premium Ultimate — Universal Mobile, Smart TV & TV Box Edition)
 */
 
 // Camada defensiva: preserva a ponte Android real e evita falhas em WebViews sem algum método.
@@ -31,7 +31,7 @@ var script = document.createElement('script'); script.src="//youtube.com/ytpro_c
 
 if(!YTProVer){
 
-var YTProVer = window.YTProVer = "5.3.0";
+var YTProVer = window.YTProVer = "5.4.0";
 console.log("[YOUTUBE PREMIUM] script carregado");
 var ytoldV="";
 var isF=false;
@@ -77,17 +77,23 @@ var ytproDefaults = {
   devMode: "false", block_60fps: "false", shorts: "false", communityPosts: "false",
   audioOnlyMode: "false", autoLoop: "false", hideAppUpsell: "true", amoledTheme: "true",
   rememberSpeed: "false", defaultPlaybackSpeed: "1",
-  // 10 NOVAS FUNÇÕES PREMIUM TOP DE LINHA (CELULAR / SMART TV / TV BOX)
-  dpadTvMode: "true",       // 1. Navegação D-Pad para controle remoto de Smart TV / TV Box
-  sleepTimer: "0",          // 2. Temporizador de sono (desligamento automático)
-  bigScreenMode: "false",   // 3. Modo tela grande / interface de TV ampliada
-  seekStep: "10",           // 4. Salto de tempo configurável (5s, 10s, 30s)
+  // RECURSOS EXCLUSIVOS: SMART TV, TV BOX E CELULAR
+  dpadTvMode: "true",       // 1. Navegação D-Pad espacial para controle remoto de Smart TV / TV Box
+  sleepTimer: "0",          // 2. Temporizador de sono (desligamento suave com feedback)
+  bigScreenMode: "false",   // 3. Modo tela grande / interface de TV ampliada (10-foot UI)
+  seekStep: "10",           // 4. Salto de tempo configurável (5s, 10s, 15s, 30s)
   childLock: "false",       // 5. Bloqueio de tela contra toques acidentais
-  volumeBoost: "100",       // 6. Booster de áudio (+200% para TV Box com som baixo)
+  volumeBoost: "100",       // 6. Booster de áudio (+200% / +300% para TV Box com som baixo)
   audioNormalize: "false",  // 7. Normalização de áudio / Modo noturno estável
   forcedMaxQuality: "auto", // 8. Qualidade máxima forçada (1080p, 4K, 720p)
   floatingPiP: "true",      // 9. PiP flutuante universal
   turboRamClean: "true",    // 10. Limpador de cache e turbo memória para TV Box
+  // SISTEMA DE TEMAS E CORES PREMIUM (8 PALETAS + WALLPAPER CUSTOMIZADO)
+  activeTheme: "amoled",    // amoled, gold, sapphire, ruby, emerald, cyberpunk, titanium, sunset, custom
+  customBgUrl: "",          // URL de imagem de fundo personalizada
+  glassmorphism: "true",    // Efeito vidro fosco translúcido
+  neonGlow: "true",         // Brilho neon nos botões e barra de reprodução
+  curvedCorners: "true",    // Bordas arredondadas modernas nos cards e player
   AV1: "true", VP8: "true", VP9: "true", H264: "true", Opus: "true", Mp4a: "true"
 };
 Object.keys(ytproDefaults).forEach((key) => {
@@ -137,51 +143,402 @@ var downBtn=`<svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" view
 
 // ==================== [10 RECURSOS PREMIUM: SMART TV / TV BOX / CELULAR] ====================
 
+
+// ==================== [SISTEMA DE TEMAS E CORES PREMIUM YTPRO] ====================
+var YTPRO_THEMES = {
+  amoled: {
+    id: "amoled",
+    name: "Super AMOLED",
+    badge: "PRETO PURO",
+    desc: "Preto absoluto (#000) para máxima economia de energia em OLEDs e TV",
+    bg: "#000000",
+    card: "#0a0a0a",
+    elevated: "#141414",
+    accent: "#ff0000",
+    accentGlow: "rgba(255, 0, 0, 0.4)",
+    text: "#ffffff",
+    textSub: "#aaaaaa",
+    border: "#1f1f1f",
+    headerBg: "rgba(0,0,0,0.96)"
+  },
+  gold: {
+    id: "gold",
+    name: "Gold Imperial 24K",
+    badge: "OURO NOBRE",
+    desc: "Preto profundo com acabamento e acentos em Ouro 24K reluzente",
+    bg: "#070604",
+    card: "#12100a",
+    elevated: "#211c10",
+    accent: "#ffd700",
+    accentGlow: "rgba(255, 215, 0, 0.45)",
+    text: "#fff9e8",
+    textSub: "#c7b88e",
+    border: "#3e3212",
+    headerBg: "rgba(10, 8, 4, 0.96)"
+  },
+  sapphire: {
+    id: "sapphire",
+    name: "Sapphire Neon",
+    badge: "AZUL SAFIRA",
+    desc: "Azul meia-noite com acentos ciano elétrico e visual cibernético",
+    bg: "#040813",
+    card: "#091224",
+    elevated: "#10203d",
+    accent: "#00d2ff",
+    accentGlow: "rgba(0, 210, 255, 0.45)",
+    text: "#f0f7ff",
+    textSub: "#8aa1c7",
+    border: "#162c54",
+    headerBg: "rgba(4, 9, 22, 0.96)"
+  },
+  ruby: {
+    id: "ruby",
+    name: "Ruby Velvet",
+    badge: "VERMELHO RUBI",
+    desc: "Bordeaux escuro com vermelho carmesim luxuoso e estilo cinema",
+    bg: "#0c0205",
+    card: "#19060b",
+    elevated: "#2a0a13",
+    accent: "#ff1744",
+    accentGlow: "rgba(255, 23, 68, 0.45)",
+    text: "#fff0f3",
+    textSub: "#c78893",
+    border: "#420e1b",
+    headerBg: "rgba(14, 3, 6, 0.96)"
+  },
+  emerald: {
+    id: "emerald",
+    name: "Emerald Luxury",
+    badge: "VERDE ESMERALDA",
+    desc: "Verde floresta profundo com detalhes em esmeralda neon de alta tecnologia",
+    bg: "#020c07",
+    card: "#06180e",
+    elevated: "#0c2b1a",
+    accent: "#00e676",
+    accentGlow: "rgba(0, 230, 118, 0.45)",
+    text: "#eefff6",
+    textSub: "#82bfa0",
+    border: "#0e3d23",
+    headerBg: "rgba(3, 14, 8, 0.96)"
+  },
+  cyberpunk: {
+    id: "cyberpunk",
+    name: "Cyberpunk Neon",
+    badge: "FUTURISTA",
+    desc: "Púrpura galáctico com reflexos magenta e vibração neon dos anos 80",
+    bg: "#080312",
+    card: "#130726",
+    elevated: "#220e42",
+    accent: "#e040fb",
+    accentGlow: "rgba(224, 64, 251, 0.45)",
+    text: "#faf5ff",
+    textSub: "#b695db",
+    border: "#36166b",
+    headerBg: "rgba(10, 4, 20, 0.96)"
+  },
+  titanium: {
+    id: "titanium",
+    name: "Midnight Titanium",
+    badge: "TITÂNIO FOSCO",
+    desc: "Cinza carvão fosco espacial com detalhes esportivos em laranja McLaren",
+    bg: "#101114",
+    card: "#181a1f",
+    elevated: "#252830",
+    accent: "#ff6d00",
+    accentGlow: "rgba(255, 109, 0, 0.45)",
+    text: "#f5f6f8",
+    textSub: "#9ca1ab",
+    border: "#2e323d",
+    headerBg: "rgba(18, 19, 23, 0.96)"
+  },
+  sunset: {
+    id: "sunset",
+    name: "Sunset Rosé",
+    badge: "PÔR DO SOL",
+    desc: "Gradiente entardecer suave com toques quentes e aconchegantes de ouro rosa",
+    bg: "#0e060c",
+    card: "#1c0d18",
+    elevated: "#30162a",
+    accent: "#ff6584",
+    accentGlow: "rgba(255, 101, 132, 0.45)",
+    text: "#fff5f7",
+    textSub: "#c794a4",
+    border: "#47213d",
+    headerBg: "rgba(16, 7, 14, 0.96)"
+  },
+  custom: {
+    id: "custom",
+    name: "Wallpaper Customizado",
+    badge: "CUSTOMIZADO",
+    desc: "Utilize qualquer imagem da internet com vidro fumê translúcido e desfoque",
+    bg: "rgba(10, 10, 10, 0.85)",
+    card: "rgba(18, 18, 18, 0.72)",
+    elevated: "rgba(35, 35, 35, 0.78)",
+    accent: "#ff0000",
+    accentGlow: "rgba(255, 0, 0, 0.45)",
+    text: "#ffffff",
+    textSub: "#cccccc",
+    border: "rgba(255, 255, 255, 0.14)",
+    headerBg: "rgba(10, 10, 10, 0.88)"
+  }
+};
+
+function applyYtProTheme() {
+  const themeKey = localStorage.getItem("activeTheme") || "amoled";
+  const theme = YTPRO_THEMES[themeKey] || YTPRO_THEMES.amoled;
+  const isCustom = themeKey === "custom";
+  const customBgUrl = localStorage.getItem("customBgUrl") || "";
+  const useGlass = localStorage.getItem("glassmorphism") !== "false";
+  const useGlow = localStorage.getItem("neonGlow") !== "false";
+  const useCurved = localStorage.getItem("curvedCorners") !== "false";
+  const borderRadius = useCurved ? "16px" : "4px";
+
+  // Gerenciador de Wallpaper de Fundo Personalizado
+  let wp = document.getElementById("ytproCustomWallpaper");
+  if (customBgUrl && (isCustom || themeKey !== "amoled")) {
+    if (!wp) {
+      wp = document.createElement("div");
+      wp.id = "ytproCustomWallpaper";
+      wp.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;background-size:cover;background-position:center center;background-repeat:no-repeat;transition:opacity 0.4s ease;";
+      document.body.prepend(wp);
+    }
+    wp.style.backgroundImage = `url("${customBgUrl}")`;
+    wp.style.opacity = "1";
+  } else if (wp) {
+    wp.style.opacity = "0";
+    setTimeout(() => { if (wp && !localStorage.getItem("customBgUrl")) wp.remove(); }, 400);
+  }
+
+  let styleEl = document.getElementById("ytproUltimateThemeStyle");
+  if (!styleEl) {
+    styleEl = document.createElement("style");
+    styleEl.id = "ytproUltimateThemeStyle";
+    document.head.appendChild(styleEl);
+  }
+
+  const backdropCss = useGlass ? "backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important;" : "";
+  const glowCss = useGlow ? `box-shadow: 0 0 14px ${theme.accentGlow} !important;` : "";
+
+  styleEl.textContent = `
+    :root {
+      --ytp-bg: ${theme.bg};
+      --ytp-card: ${theme.card};
+      --ytp-elevated: ${theme.elevated};
+      --ytp-accent: ${theme.accent};
+      --ytp-glow: ${theme.accentGlow};
+      --ytp-text: ${theme.text};
+      --ytp-text-sub: ${theme.textSub};
+      --ytp-border: ${theme.border};
+      --ytp-header: ${theme.headerBg};
+      --ytp-radius: ${borderRadius};
+    }
+
+    /* Fundo da Aplicação YouTube Mobile e Desktop */
+    html, body, ytm-app, ytd-app, #app, #content, #page-manager {
+      background-color: var(--ytp-bg) !important;
+      color: var(--ytp-text) !important;
+    }
+
+    /* Cabeçalho Topbar com Efeito Vidro Premium */
+    ytm-header, ytm-mobile-topbar-renderer, ytd-masthead, header.masthead-finish {
+      background-color: var(--ytp-header) !important;
+      ${backdropCss}
+      border-bottom: 1px solid var(--ytp-border) !important;
+    }
+
+    /* Barra de Navegação Inferior (Pivot Bar / Guias) */
+    .ytm-pivot-bar-renderer, ytm-pivot-bar-renderer, #guide-wrapper {
+      background-color: var(--ytp-header) !important;
+      ${backdropCss}
+      border-top: 1px solid var(--ytp-border) !important;
+    }
+
+    /* Chips e Filtros de Categorias */
+    ytm-feed-filter-chip-bar-renderer, .ytm-feed-filter-chip-bar-renderer {
+      background-color: transparent !important;
+    }
+    ytm-chip-cloud-chip-renderer[selected="true"], yt-chip-cloud-chip-renderer[selected] {
+      background: var(--ytp-accent) !important;
+      color: #fff !important;
+      ${glowCss}
+    }
+
+    /* Cards de Vídeos e Miniaturas */
+    ytm-compact-video-renderer, ytm-video-with-context-renderer, ytm-item-section-renderer, ytd-video-renderer, ytd-rich-item-renderer {
+      background-color: var(--ytp-card) !important;
+      border-radius: var(--ytp-radius) !important;
+      border: 1px solid var(--ytp-border) !important;
+      margin-bottom: 14px !important;
+      overflow: hidden !important;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    ytm-compact-video-renderer:hover, ytm-video-with-context-renderer:hover {
+      border-color: var(--ytp-accent) !important;
+      ${glowCss}
+    }
+
+    /* Títulos e Subtítulos */
+    .slim-video-information-title, .video-title, .yt-core-attributed-string {
+      color: var(--ytp-text) !important;
+    }
+    .compact-media-item-byline, .slim-video-information-subtitle, .yt-core-attributed-string--link-inherit-color {
+      color: var(--ytp-text-sub) !important;
+    }
+
+    /* Barra de Progresso e Player no Tema Ativo */
+    .ytp-play-progress, .ytp-swatch-background-color, .ytProgressBarLineProgressBarLine {
+      background-color: var(--ytp-accent) !important;
+      ${glowCss}
+    }
+    .ytp-scrubber-button {
+      background-color: var(--ytp-accent) !important;
+      ${glowCss}
+    }
+
+    /* Botões de Ação Redondos */
+    .yt-spec-button-shape-next--tonal, .yt-spec-button-shape-next--mono {
+      background-color: var(--ytp-elevated) !important;
+      color: var(--ytp-text) !important;
+      border-radius: 20px !important;
+    }
+
+    /* Anel de Foco para Controle Remoto (Smart TV e TV Box) */
+    *:focus-visible, .ytpro-tv-focused {
+      outline: 3px solid var(--ytp-accent) !important;
+      outline-offset: 3px !important;
+      border-radius: var(--ytp-radius) !important;
+      ${glowCss}
+    }
+  `;
+}
+
+// ==================== [NAVEGAÇÃO UNIVERSAL SMART TV & TV BOX] ====================
+var ytproTvFocusIndex = -1;
+
+function getTvFocusableElements() {
+  // Se modal ou menu estiver aberto, focar apenas dentro dele
+  const activeModal = document.getElementById("settingsprodiv") || document.getElementById("ytproDownloadMenu") || document.getElementById("outerheartsdiv");
+  const container = activeModal || document.body;
+  const selector = activeModal
+    ? 'button, input, [data-action], .ytp-switch, .ytp-chip, [tabindex="0"]'
+    : 'ytm-compact-video-renderer, ytm-video-with-context-renderer, ytm-rich-item-renderer, button, a, input, [data-action], .yt-spec-button-shape-next';
+  const rawList = Array.from(container.querySelectorAll(selector));
+  return rawList.filter(el => {
+    const r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== "hidden" && getComputedStyle(el).display !== "none";
+  });
+}
+
+function setTvFocus(index) {
+  const elements = getTvFocusableElements();
+  if (!elements.length) return;
+  document.querySelectorAll(".ytpro-tv-focused").forEach(el => el.classList.remove("ytpro-tv-focused"));
+  ytproTvFocusIndex = Math.max(0, Math.min(index, elements.length - 1));
+  const target = elements[ytproTvFocusIndex];
+  if (target) {
+    target.classList.add("ytpro-tv-focused");
+    target.focus();
+    target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+  }
+}
+
 // 1. SUPORTE A CONTROLE REMOTO / D-PAD PARA SMART TV E TV BOX
 (function initTvRemoteSupport() {
   window.addEventListener("keydown", (e) => {
     if (localStorage.getItem("dpadTvMode") !== "true") return;
+
     const video = document.querySelector("video.video-stream") || document.querySelector("video");
     const key = e.key;
+    const keyCode = e.keyCode;
     const step = parseInt(localStorage.getItem("seekStep") || "10", 10);
+    const inWatch = window.location.href.indexOf("/watch") > -1;
+    const isPlayerActive = document.fullscreenElement || (inWatch && !document.getElementById("settingsprodiv"));
 
-    // Teclas multimídia padrão de controle remoto
-    if (key === "MediaPlayPause" || key === "PlayPause") {
+    // Tecla Voltar / Back / Escape de controle remoto de TV Box (keycodes: 27, 4, 8, 461)
+    if (key === "Escape" || key === "BrowserBack" || key === "Back" || key === "GoBack" || keyCode === 27 || keyCode === 4 || keyCode === 461) {
+      const settings = document.getElementById("settingsprodiv");
+      if (settings) {
+        e.preventDefault();
+        if (window.location.hash === "#settings") history.back();
+        else settings.remove();
+        return;
+      }
+      const downMenu = document.getElementById("ytproDownloadMenu");
+      if (downMenu) { e.preventDefault(); downMenu.remove(); return; }
+      const hearts = document.getElementById("outerheartsdiv");
+      if (hearts) { e.preventDefault(); history.back(); return; }
+      const childLock = document.getElementById("ytproChildLockOverlay");
+      if (childLock) { e.preventDefault(); toggleChildLock(); return; }
+      if (document.fullscreenElement && typeof document.exitFullscreen === "function") {
+        e.preventDefault();
+        document.exitFullscreen().catch(() => {});
+        return;
+      }
+    }
+
+    // Teclas Multimídia padrão de controle remoto
+    if (key === "MediaPlayPause" || key === "PlayPause" || keyCode === 179) {
       if (video) { video.paused ? video.play() : video.pause(); e.preventDefault(); }
       return;
     }
-    if (key === "MediaPlay") { if (video) video.play(); e.preventDefault(); return; }
+    if (key === "MediaPlay" || keyCode === 19) { if (video) video.play(); e.preventDefault(); return; }
     if (key === "MediaPause") { if (video) video.pause(); e.preventDefault(); return; }
     if (key === "MediaFastForward" || key === "FastForward") {
-      if (video) { video.currentTime += step; showCustomToast(`+${step}s`); e.preventDefault(); }
+      if (video) { video.currentTime += step; showCustomToast(`⏩ +${step}s`); e.preventDefault(); }
       return;
     }
     if (key === "MediaRewind" || key === "Rewind") {
-      if (video) { video.currentTime -= step; showCustomToast(`-${step}s`); e.preventDefault(); }
+      if (video) { video.currentTime -= step; showCustomToast(`⏪ -${step}s`); e.preventDefault(); }
       return;
     }
 
-    // Setas no controle remoto quando o player está em foco ou tela cheia
-    if (document.fullscreenElement || e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+    // Controle em modo Player / Tela Cheia
+    if (isPlayerActive && (e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA")) {
       if (key === "ArrowRight") {
-        if (video) { video.currentTime += step; showCustomToast(`+${step}s`); e.preventDefault(); }
+        if (video) { video.currentTime += step; showCustomToast(`⏩ +${step}s`); e.preventDefault(); }
+        return;
       } else if (key === "ArrowLeft") {
-        if (video) { video.currentTime -= step; showCustomToast(`-${step}s`); e.preventDefault(); }
+        if (video) { video.currentTime -= step; showCustomToast(`⏪ -${step}s`); e.preventDefault(); }
+        return;
       } else if (key === "ArrowUp") {
         let curVol = Number(Android.getVolume());
         curVol = Math.min(1, curVol + 0.1);
         try { Android.setVolume(curVol); } catch(err){}
         showGestureHUD("vol", curVol);
         e.preventDefault();
+        return;
       } else if (key === "ArrowDown") {
         let curVol = Number(Android.getVolume());
         curVol = Math.max(0, curVol - 0.1);
         try { Android.setVolume(curVol); } catch(err){}
         showGestureHUD("vol", curVol);
         e.preventDefault();
-      } else if (key === " " && video) {
-        video.paused ? video.play() : video.pause();
+        return;
+      } else if (key === " " || key === "Enter" || keyCode === 13 || keyCode === 23) {
+        if (video && document.fullscreenElement) {
+          video.paused ? video.play() : video.pause();
+          e.preventDefault();
+          return;
+        }
+      }
+    }
+
+    // Navegação Espacial D-Pad no Feed, Menus e Diálogos de Smart TV
+    if (e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+      const focusables = getTvFocusableElements();
+      if (!focusables.length) return;
+
+      if (key === "ArrowDown") {
         e.preventDefault();
+        setTvFocus(ytproTvFocusIndex + 1);
+      } else if (key === "ArrowUp") {
+        e.preventDefault();
+        setTvFocus(ytproTvFocusIndex - 1);
+      } else if (key === "Enter" || keyCode === 13 || keyCode === 23) {
+        if (ytproTvFocusIndex >= 0 && focusables[ytproTvFocusIndex]) {
+          e.preventDefault();
+          focusables[ytproTvFocusIndex].click();
+        }
       }
     }
   }, { capture: true });
@@ -201,12 +558,23 @@ function setSleepTimer(minutes) {
     return;
   }
   localStorage.setItem("sleepTimer", String(mins));
-  showCustomToast(`Timer ativado: desligará em ${mins} min`);
+  showCustomToast(`⏰ Timer ativado: desligará em ${mins} min`);
   sleepTimerHandle = setTimeout(() => {
     const video = document.querySelector("video.video-stream") || document.querySelector("video");
     if (video) {
-      video.pause();
-      showCustomToast("😴 Temporizador de sono: Reprodução pausada");
+      // Fade suave do volume antes de pausar
+      let v = 1.0;
+      const fadeInterval = setInterval(() => {
+        v -= 0.1;
+        if (v <= 0) {
+          clearInterval(fadeInterval);
+          video.pause();
+          video.volume = 1.0;
+          showCustomToast("😴 Temporizador de sono: Reprodução pausada");
+        } else {
+          video.volume = Math.max(0, v);
+        }
+      }, 100);
     }
     localStorage.setItem("sleepTimer", "0");
   }, mins * 60 * 1000);
@@ -220,15 +588,16 @@ function applyBigScreenMode() {
       styleEl = document.createElement("style");
       styleEl.id = "ytproBigScreenStyle";
       styleEl.textContent = `
-        /* Amplia cards, títulos e botões para visualização na TV */
-        html { font-size: 18px !important; }
+        /* Amplia cards, títulos e botões para visualização na TV a 3 metros */
+        html { font-size: 19px !important; }
         ytm-compact-video-renderer, ytm-video-with-context-renderer {
-          margin-bottom: 24px !important;
+          margin-bottom: 26px !important;
           transform: scale(1.02);
         }
-        .slim-video-information-title { font-size: 20px !important; font-weight: bold !important; }
-        .yt-spec-button-shape-next--size-m { min-height: 48px !important; font-size: 16px !important; }
-        *:focus-visible { outline: 3px solid #ff0000 !important; outline-offset: 3px !important; }
+        .slim-video-information-title { font-size: 22px !important; font-weight: bold !important; line-height: 1.3 !important; }
+        .yt-spec-button-shape-next--size-m { min-height: 52px !important; font-size: 17px !important; padding: 0 20px !important; }
+        .ytm-pivot-bar-renderer { height: 62px !important; }
+        .ytm-pivot-bar-item-title { font-size: 13px !important; }
       `;
       document.head.appendChild(styleEl);
     }
@@ -253,7 +622,7 @@ function toggleChildLock() {
   
   const unlockBtn = document.createElement("button");
   unlockBtn.innerHTML = "🔒 Tela Bloqueada (Toque 3x para desbloquear)";
-  unlockBtn.style.cssText = "background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);color:#fff;border:1px solid #ff0000;padding:12px 24px;border-radius:24px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,0.7);pointer-events:auto;cursor:pointer;";
+  unlockBtn.style.cssText = "background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);color:#fff;border:1px solid #ff0000;padding:12px 24px;border-radius:24px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,0.7);pointer-events:auto;cursor:pointer;";
   
   let clicks = 0;
   let clickTimer = null;
@@ -296,27 +665,28 @@ function applyAudioEnhancements() {
       const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtxClass) return;
       ytproAudioCtx = new AudioCtxClass();
-      const source = ytproAudioCtx.createMediaElementSource(video);
       ytproGainNode = ytproAudioCtx.createGain();
       ytproCompressor = ytproAudioCtx.createDynamicsCompressor();
 
-      // Configuração suave de compressor para modo noturno / diálogos estáveis
       ytproCompressor.threshold.setValueAtTime(-24, ytproAudioCtx.currentTime);
       ytproCompressor.knee.setValueAtTime(30, ytproAudioCtx.currentTime);
       ytproCompressor.ratio.setValueAtTime(12, ytproAudioCtx.currentTime);
       ytproCompressor.attack.setValueAtTime(0.003, ytproAudioCtx.currentTime);
       ytproCompressor.release.setValueAtTime(0.25, ytproAudioCtx.currentTime);
+    }
 
+    if (!video._ytproAudioSourceConnected) {
+      const source = ytproAudioCtx.createMediaElementSource(video);
       source.connect(ytproCompressor);
       ytproCompressor.connect(ytproGainNode);
       ytproGainNode.connect(ytproAudioCtx.destination);
+      video._ytproAudioSourceConnected = true;
     }
 
     if (ytproAudioCtx.state === "suspended") {
       ytproAudioCtx.resume();
     }
 
-    // Ganho (100% = 1.0, 200% = 2.0, 300% = 3.0)
     if (ytproGainNode) {
       ytproGainNode.gain.setValueAtTime(boostVal / 100, ytproAudioCtx.currentTime);
     }
@@ -338,11 +708,9 @@ function applyForcedResolution() {
 // 8. OTIMIZADOR DE MEMÓRIA E TURBO RAM CLEANER PARA TV BOX
 function cleanTvBoxMemory() {
   try {
-    // Remove comentários ocultos em background, prateleiras velhas e elementos descartados
     document.querySelectorAll("ytm-comment-thread-renderer, ytm-backstage-post-thread-renderer").forEach((el, idx) => {
-      if (idx > 20) el.remove();
+      if (idx > 15) el.remove();
     });
-    // Limpa garbage de imagens
     if (window.gc) window.gc();
     showCustomToast("🚀 Memória otimizada para TV Box!");
   } catch(e) {
@@ -364,7 +732,8 @@ function showCustomToast(msg, duration = 3000) {
     toast.style.cssText = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,0.92);backdrop-filter:blur(10px);color:#fff;padding:12px 22px;border-radius:24px;font-size:13px;font-weight:600;font-family:Roboto,Arial,sans-serif;box-shadow:0 6px 25px rgba(0,0,0,0.8),0 0 1px rgba(255,255,255,0.2);z-index:2147483647;pointer-events:none;transition:opacity 0.3s, transform 0.3s;opacity:0;display:flex;align-items:center;gap:8px;";
     document.body.appendChild(toast);
   }
-  toast.innerHTML = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff0000;"></span>${msg}`;
+  const theme = YTPRO_THEMES[localStorage.getItem("activeTheme") || "amoled"] || YTPRO_THEMES.amoled;
+  toast.innerHTML = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${theme.accent};box-shadow:0 0 8px ${theme.accent};"></span>${msg}`;
   toast.style.opacity = "1";
   toast.style.transform = "translateX(-50%) translateY(0)";
   clearTimeout(showCustomToast._timer);
@@ -386,11 +755,12 @@ function showGestureHUD(type, percent) {
   const icon = isVol ? "🔊" : "☀️";
   const label = isVol ? "Volume" : "Brilho";
   const pct = Math.round(percent * 100);
+  const theme = YTPRO_THEMES[localStorage.getItem("activeTheme") || "amoled"] || YTPRO_THEMES.amoled;
   hud.innerHTML = `
     <div style="font-size:24px;margin-bottom:6px;">${icon}</div>
     <div style="font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">${label} ${pct}%</div>
     <div style="width:100%;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;overflow:hidden;">
-      <div style="width:${pct}%;height:100%;background:#ff0000;border-radius:2px;transition:width 0.05s;"></div>
+      <div style="width:${pct}%;height:100%;background:${theme.accent};border-radius:2px;transition:width 0.05s;"></div>
     </div>
   `;
   hud.style.opacity = "1";
@@ -400,65 +770,40 @@ function showGestureHUD(type, percent) {
   }, 900);
 }
 
-// Download de thumbnail em alta resolução
 function downloadCurrentThumbnail() {
-  let videoId = "";
-  try {
-    const url = new URL(window.location.href);
-    if (url.pathname.includes("shorts")) {
-      videoId = url.pathname.replace("/shorts/", "").split("/")[0].split("?")[0];
-    } else {
-      videoId = url.searchParams.get("v");
-    }
-  } catch(e) {}
+  var videoId = (new URLSearchParams(window.location.search)).get('v') || window.location.pathname.replace("/shorts/", "");
   if (!videoId) {
     showCustomToast("Vídeo não identificado");
     return;
   }
-  const thumbUrl = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
-  const filename = `Thumbnail_${videoId}.jpg`;
+  var thumbUrl = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
   try {
     if (typeof Android !== "undefined" && typeof Android.downvid === "function" && hasAndroidBridge) {
-      Android.downvid(filename, thumbUrl, "image/jpeg");
+      Android.downvid(`thumb_${videoId}.jpg`, thumbUrl, "image/jpeg");
       showCustomToast("Download da capa iniciado!");
-      return;
+    } else {
+      window.open(thumbUrl, "_blank");
+      showCustomToast("Capa aberta para download");
     }
-  } catch(e) {}
-  // Web fallback:
-  const a = document.createElement("a");
-  a.href = thumbUrl;
-  a.download = filename;
-  a.target = "_blank";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  showCustomToast("Capa aberta para download");
+  } catch(e) {
+    window.open(thumbUrl, "_blank");
+  }
 }
 
-// Aplicar modo somente áudio
 function applyAudioOnlyMode() {
   const isAudioOnly = localStorage.getItem("audioOnlyMode") === "true";
   const video = document.querySelector("video.video-stream") || document.querySelector("video");
   if (video) {
-    video.style.opacity = isAudioOnly ? "0" : "1";
-    video.style.pointerEvents = isAudioOnly ? "none" : "auto";
-  }
-  let badge = document.getElementById("ytproAudioOnlyBadge");
-  if (isAudioOnly) {
-    if (!badge) {
-      badge = document.createElement("div");
-      badge.id = "ytproAudioOnlyBadge";
-      badge.innerHTML = "🎵 Somente Áudio Ativo";
-      badge.style.cssText = "position:absolute;top:10px;left:10px;background:rgba(255,0,0,0.85);color:#fff;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700;z-index:9999;pointer-events:none;box-shadow:0 2px 10px rgba(0,0,0,0.5);";
-      const p = document.getElementById("player-container-id") || document.getElementById("player");
-      if (p) p.appendChild(badge);
+    if (isAudioOnly) {
+      video.style.opacity = "0";
+      video.style.pointerEvents = "none";
+    } else {
+      video.style.opacity = "1";
+      video.style.pointerEvents = "auto";
     }
-  } else {
-    if (badge) badge.remove();
   }
 }
 
-// Aplicar repetição automática (auto-loop)
 function applyAutoLoop() {
   const isLoop = localStorage.getItem("autoLoop") === "true";
   const video = document.querySelector("video.video-stream") || document.querySelector("video");
@@ -467,27 +812,13 @@ function applyAutoLoop() {
   }
 }
 
-// Aplicar tema AMOLED
 function applyAmoledTheme() {
-  let styleEl = document.getElementById("ytproAmoledStyle");
-  if (localStorage.getItem("amoledTheme") === "true") {
-    if (!styleEl) {
-      styleEl = document.createElement("style");
-      styleEl.id = "ytproAmoledStyle";
-      styleEl.textContent = `
-        body, ytm-app, ytm-mobile-topbar-renderer, #player-container-id, .ytm-pivot-bar-renderer {
-          background-color: #000000 !important;
-        }
-        .yt-spec-bottom-sheet-layout__bottom-sheet-renderer-container {
-          background-color: #0a0a0a !important;
-        }
-      `;
-      document.head.appendChild(styleEl);
-    }
-  } else {
-    if (styleEl) styleEl.remove();
-  }
+  applyYtProTheme();
 }
+
+// Aplicação imediata do tema na inicialização
+try { applyYtProTheme(); } catch(e) {}
+
 
 function override() {
 var videoElem = document.createElement('video');
@@ -613,7 +944,8 @@ var addSettingsTab=()=>{
     var prem=document.createElement("span");
     prem.setAttribute("id","ytProPremiumLabel");
     prem.textContent="premium";
-    prem.setAttribute("style","display:inline-block;vertical-align:middle;font-family:Roboto,Arial,sans-serif;font-size:15px;font-weight:500;letter-spacing:-0.4px;line-height:1;margin-left:2px;margin-right:6px;white-space:nowrap;color:"+hdrFg+";pointer-events:none;user-select:none;");
+    // AQUI ESTÁ A ALTERAÇÃO DO TAMANHO: font-size:19px (era 15px)
+    prem.setAttribute("style","display:inline-block;vertical-align:middle;font-family:Roboto,Arial,sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.4px;line-height:1;margin-left:4px;margin-right:8px;white-space:nowrap;color:"+hdrFg+";pointer-events:none;user-select:none;");
 
     var ytpMenuBtn=document.createElement("div");
     ytpMenuBtn.setAttribute("id","ytproMenuBtn");
@@ -626,13 +958,35 @@ var addSettingsTab=()=>{
     ytpMenuBtn.addEventListener("click",function(ev){
       ev.preventDefault();
       ev.stopPropagation();
+      
+      // MELHORIA NA BUSCA DO BOTÃO NATIVO
       var originalMenuBtn = document.querySelector("ytm-topbar-menu-button-renderer button") ||
+                            document.querySelector("ytm-mobile-topbar-renderer yt-icon-button#guide-button button") ||
+                            document.querySelector("ytm-mobile-topbar-renderer button[aria-label='Guia']") ||
+                            document.querySelector("ytm-mobile-topbar-renderer button[aria-label='Guide']") ||
+                            document.querySelector("ytm-mobile-topbar-renderer button[aria-label='Menu']") ||
                             document.querySelector("#guide-button") ||
-                            document.querySelector("ytm-menu-button-renderer button") ||
                             document.querySelector("button[aria-label='Guia']") ||
                             document.querySelector("button[aria-label='Guide']");
+
       if(originalMenuBtn){
         originalMenuBtn.click();
+        console.log("[YOUTUBE PREMIUM] Menu lateral nativo acionado com sucesso.");
+      } else {
+        console.log("[YOUTUBE PREMIUM] Erro: Botão nativo do menu não encontrado nesta versão do YouTube.");
+        // Fallback: Tenta achar qualquer botão no topo esquerdo que possa ser o menu
+        try {
+            var topbar = document.querySelector("ytm-mobile-topbar-renderer");
+            if(topbar) {
+                var possibleBtns = topbar.querySelectorAll("button");
+                for (var i=0; i<possibleBtns.length; i++) {
+                    if (possibleBtns[i].getAttribute("aria-label") === "Guia" || possibleBtns[i].getAttribute("aria-label") === "Guide") {
+                         possibleBtns[i].click();
+                         return;
+                    }
+                }
+            }
+        } catch(e) {}
       }
     });
 
@@ -879,7 +1233,25 @@ y.children[0].style.display="block";
 }
 }
 
+
+function renderThemeCard(id, title, desc, bgCol, accentCol) {
+  const isSelected = (localStorage.getItem("activeTheme") || "amoled") === id;
+  const borderCol = isSelected ? accentCol : "#2a2a2a";
+  const checkIcon = isSelected ? `<span style="position:absolute;top:6px;right:6px;background:${accentCol};color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:bold;">✓</span>` : "";
+  return `
+    <div data-action="selectTheme" data-theme="${id}" style="background:${bgCol};border:2px solid ${borderCol};border-radius:12px;padding:12px;cursor:pointer;position:relative;transition:all 0.2s ease;box-shadow:${isSelected ? '0 0 12px ' + accentCol + '66' : 'none'};">
+      ${checkIcon}
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="width:14px;height:14px;border-radius:50%;background:${accentCol};box-shadow:0 0 6px ${accentCol};"></span>
+        <span style="font-size:12px;font-weight:700;color:#fff;">${title}</span>
+      </div>
+      <div style="font-size:10px;color:#888;line-height:1.2;">${desc}</div>
+    </div>
+  `;
+}
+
 async function ytproSettings(){
+
 var ytpSet=document.createElement("div");
 var ytpSetI=document.createElement("div");
 ytpSet.setAttribute("id","settingsprodiv");
@@ -1004,6 +1376,7 @@ ytpSetI.innerHTML+=`
 
 <div class="ytp-tabs-bar">
   <button class="ytp-chip active" data-tab="all">Todos</button>
+  <button class="ytp-chip" data-tab="themes">🎨 Temas & Cores</button>
   <button class="ytp-chip" data-tab="tvbox">📺 Smart TV</button>
   <button class="ytp-chip" data-tab="audio">🔊 Áudio +</button>
   <button class="ytp-chip" data-tab="tools">🛠️ Utilitários</button>
@@ -1018,6 +1391,59 @@ ytpSetI.innerHTML+=`
 <div class="ytp-content">
 
   <input type="url" placeholder="Cole o link de um vídeo do YouTube..." id="ytproUrlInput" class="ytp-input-box">
+
+  <!-- SEÇÃO TEMAS LUXO & CORES PREMIUM (NOVA) -->
+  <div class="ytp-sec" data-category="themes">
+    <div class="ytp-sec-title">🎨 TEMAS LUXO & PALETAS DE CORES</div>
+    <div style="font-size:11px;color:#aaa;margin-bottom:10px;">Selecione um tema exclusivo para transformar completamente o visual do YouTube:</div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0;">
+      ${renderThemeCard("amoled", "🖤 Super AMOLED", "Preto Puro OLED", "#000000", "#ff0000")}
+      ${renderThemeCard("gold", "👑 Gold Imperial", "Ouro 24K Nobre", "#070604", "#ffd700")}
+      ${renderThemeCard("sapphire", "💎 Sapphire Neon", "Azul Safira & Ciano", "#040813", "#00d2ff")}
+      ${renderThemeCard("ruby", "🍷 Ruby Velvet", "Vermelho Carmesim", "#0c0205", "#ff1744")}
+      ${renderThemeCard("emerald", "🌲 Emerald VIP", "Verde Esmeralda Neon", "#020c07", "#00e676")}
+      ${renderThemeCard("cyberpunk", "💜 Cyberpunk Neon", "Púrpura & Magenta", "#080312", "#e040fb")}
+      ${renderThemeCard("titanium", "🏎️ Titânio Fosco", "Cinza Carvão & Laranja", "#101114", "#ff6d00")}
+      ${renderThemeCard("sunset", "🌅 Sunset Rosé", "Ouro Rosa Pôr do Sol", "#0e060c", "#ff6584")}
+    </div>
+
+    <div class="ytp-sec-title" style="margin-top:16px;">🖼️ WALLPAPER & IMAGEM DE FUNDO</div>
+    <div class="ytp-card" style="flex-direction:column;align-items:stretch;padding:14px;">
+      <div class="ytp-card-title" style="margin-bottom:6px;">Personalizar com Imagem da Internet</div>
+      <div class="ytp-card-desc" style="margin-bottom:12px;">Cole a URL de qualquer imagem (foto, wallpaper 4K, textura) para aplicar como plano de fundo com vidro translúcido:</div>
+      <input type="url" id="ytproCustomBgUrlInput" placeholder="https://exemplo.com/wallpaper.jpg" value="${localStorage.getItem("customBgUrl") || ""}" style="width:100%;height:40px;background:#111;border:1px solid #333;border-radius:8px;padding:0 12px;color:#fff;font-size:12px;outline:none;margin-bottom:8px;">
+      <div style="display:flex;gap:8px;">
+        <button data-action="applyCustomBg" style="flex:1;height:38px;background:var(--ytp-accent,#ff0000);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">Aplicar Imagem</button>
+        <button data-action="removeCustomBg" style="width:110px;height:38px;background:#2a2a2a;color:#ccc;border:none;border-radius:8px;font-size:12px;cursor:pointer;">Remover Fundo</button>
+      </div>
+    </div>
+
+    <div class="ytp-sec-title" style="margin-top:16px;">✨ DETALHES VISUAIS & EFEITOS</div>
+    <div class="ytp-card">
+      <div class="ytp-card-info">
+        <div class="ytp-card-title">Efeito Vidro Fosco (Glassmorphism)</div>
+        <div class="ytp-card-desc">Translúcido com desfoque de fundo suave nos menus e cards</div>
+      </div>
+      <span class="ytp-switch" data-action="sttCnf" data-value="glassmorphism" style="${sttCnf(0,0,"glassmorphism")}"><b style="${sttCnf(0,1,"glassmorphism")}"></b></span>
+    </div>
+
+    <div class="ytp-card">
+      <div class="ytp-card-info">
+        <div class="ytp-card-title">Brilho Neon (Glow Luminoso)</div>
+        <div class="ytp-card-desc">Sombra luminosa nos botões de ação e na barra de reprodução</div>
+      </div>
+      <span class="ytp-switch" data-action="sttCnf" data-value="neonGlow" style="${sttCnf(0,0,"neonGlow")}"><b style="${sttCnf(0,1,"neonGlow")}"></b></span>
+    </div>
+
+    <div class="ytp-card">
+      <div class="ytp-card-info">
+        <div class="ytp-card-title">Bordas Arredondadas Modernas (16px)</div>
+        <div class="ytp-card-desc">Deixa miniaturas, players e cards com curvas suaves e elegantes</div>
+      </div>
+      <span class="ytp-switch" data-action="sttCnf" data-value="curvedCorners" style="${sttCnf(0,0,"curvedCorners")}"><b style="${sttCnf(0,1,"curvedCorners")}"></b></span>
+    </div>
+  </div>
 
   <!-- SEÇÃO SMART TV & TV BOX (NOVA) -->
   <div class="ytp-sec" data-category="tvbox">
@@ -1295,6 +1721,40 @@ tabs.forEach(chip => {
 });
 
 var actionsList={
+  selectTheme: (el) => {
+    const themeId = el.dataset.theme;
+    localStorage.setItem("activeTheme", themeId);
+    applyYtProTheme();
+    showCustomToast("🎨 Tema " + themeId.toUpperCase() + " ativado!");
+    try {
+      el.closest(".ytp-sec").querySelectorAll("[data-action='selectTheme']").forEach(card => {
+        const isCurrent = card.dataset.theme === themeId;
+        const targetTheme = YTPRO_THEMES[card.dataset.theme] || YTPRO_THEMES.amoled;
+        card.style.borderColor = isCurrent ? targetTheme.accent : "#2a2a2a";
+        card.style.boxShadow = isCurrent ? "0 0 12px " + targetTheme.accentGlow : "none";
+      });
+    } catch(e) {}
+  },
+  applyCustomBg: (el) => {
+    const input = document.getElementById("ytproCustomBgUrlInput");
+    const url = input ? input.value.trim() : "";
+    if (!url) {
+      showCustomToast("Informe uma URL de imagem válida");
+      return;
+    }
+    localStorage.setItem("customBgUrl", url);
+    localStorage.setItem("activeTheme", "custom");
+    applyYtProTheme();
+    showCustomToast("🖼️ Wallpaper de fundo aplicado com sucesso!");
+  },
+  removeCustomBg: (el) => {
+    localStorage.removeItem("customBgUrl");
+    const input = document.getElementById("ytproCustomBgUrlInput");
+    if (input) input.value = "";
+    localStorage.setItem("activeTheme", "amoled");
+    applyYtProTheme();
+    showCustomToast("Plano de fundo removido. Tema AMOLED restaurado.");
+  },
   closeMenu: () => {
     if(window.location.hash === "#settings") history.back();
     else ytpSet.remove();
@@ -1428,6 +1888,10 @@ if(currentlyActive){
     x.children[0].style.transform = "translateX(0)";
   }
   showCustomToast("Desativado");
+  if (["glassmorphism", "neonGlow", "curvedCorners", "amoledTheme"].includes(z)) {
+    setTimeout(applyYtProTheme, 50);
+  }
+
 }
 else{
   localStorage.setItem(z,"true");
@@ -1438,6 +1902,10 @@ else{
     x.children[0].style.transform = "translateX(20px)";
   }
   showCustomToast("Ativado com sucesso!");
+  if (["glassmorphism", "neonGlow", "curvedCorners", "amoledTheme"].includes(z)) {
+    setTimeout(applyYtProTheme, 50);
+  }
+
 }
 
 try{
@@ -2135,7 +2603,7 @@ document.getElementById("ytShortsDislikes").innerHTML=dislikes;
 }
 }
 
-setInterval(pkc,100);
+setInterval(pkc,250);
 
 async function showHearts(){
 var ytproH=document.createElement("div");
@@ -2401,7 +2869,7 @@ function adsBlock(){
 try{ document.getElementsByClassName('video-stream')[0].removeAttribute('disablepictureinpicture'); }catch(e){}
 applyAudioOnlyMode();
 applyAutoLoop();
-applyAmoledTheme();
+applyYtProTheme();
 applyBigScreenMode();
 applyAudioEnhancements();
 applyForcedResolution();

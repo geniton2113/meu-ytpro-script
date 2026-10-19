@@ -553,43 +553,118 @@ async function waitForElement(selector, vid, timeoutMs = 10000) {
   });
 }
 
-var addSettingsTab=()=>{
-if(document.getElementById("setDiv") != null) return;
+var ytproBootTime=Date.now();
 
-var logo = document.getElementsByTagName("ytm-home-logo")[0] || 
-           document.querySelector("ytmusic-logo") || 
-           document.querySelector(".header-bar") ||
-           document.querySelector("ytm-mobile-topbar-renderer");
-
-if(!logo || !logo.parentNode) {
-  // Nenhum botão flutuante na tela (removido a pedido do usuário).
-  return;
-}
-
-var setDiv=document.createElement("div");
-setDiv.setAttribute("id","setDiv");
-
-var iconWrap=document.createElement("span");
-iconWrap.setAttribute("style","display:flex;align-items:center;justify-content:center;pointer-events:none;");
-iconWrap.innerHTML=`<svg fill="${ window.location.href.indexOf("watch") < 0 ? c : "#fff" }" xmlns="http://www.w3.org/2000/svg" height="22" viewBox="0 0 24 24" width="22" id="hSett"><path d="M12.844 1h-1.687a2 2 0 00-1.962 1.616 3 3 0 01-3.92 2.263 2 2 0 00-2.38.891l-.842 1.46a2 2 0 00.417 2.507 3 3 0 010 4.525 2 2 0 00-.417 2.507l.843 1.46a2 2 0 002.38.892 3.001 3.001 0 013.918 2.263A2 2 0 0011.157 23h1.686a2 2 0 001.963-1.615 3.002 3.002 0 013.92-2.263 2 2 0 002.38-.892l.842-1.46a2 2 0 00-.418-2.507 3 3 0 010-4.526 2 2 0 00.418-2.508l-.843-1.46a2 2 0 00-2.38-.891 3 3 0 01-3.919-2.263A2 2 0 0012.844 1Zm-1.767 2.347a6 6 0 00.08-.347h1.687a4.98 4.98 0 002.407 3.37 4.98 4.98 0 004.122.4l.843 1.46A4.98 4.98 0 0018.5 12a4.98 4.98 0 001.716 3.77l-.843 1.46a4.98 4.98 0 00-4.123.4A4.979 4.979 0 0012.843 21h-1.686a4.98 4.98 0 00-2.408-3.371 4.999 4.999 0 00-4.12-.399l-.844-1.46A4.979 4.979 0 005.5 12a4.98 4.98 0 00-1.715-3.77l.842-1.459a4.98 4.98 0 004.123-.399 4.981 4.981 0 002.327-3.025ZM16 12a4 4 0 11-7.999 0 4 4 0 018 0Zm-4 2a2 2 0 100-4 2 2 0 000 4Z"></path></svg>`;
-setDiv.appendChild(iconWrap);
-setDiv.setAttribute("style","z-index:9999999999;display:flex;align-items:center;justify-content:center;padding:8px;cursor:pointer;pointer-events:auto;");
-
-if(insertAfter(logo,setDiv)){
-  console.log("[YOUTUBE PREMIUM] botão inserido discretamente na barra superior");
-}
-
-setDiv.addEventListener("click",function(ev){
-  ev.preventDefault();
-  ev.stopPropagation();
-  var existing=document.getElementById("settingsprodiv");
-  if(existing){ existing.remove(); return; }
-  if(window.location.hash === "#settings"){
-    try{ ytproSettings(); }catch(e){ console.log("[YOUTUBE PREMIUM] erro ytproSettings:", e); }
-  }else{
-    window.location.hash="settings";
+function findHeaderLogoRef(){
+  var homeHrefs=["/","https://m.youtube.com/","https://www.youtube.com/","https://m.youtube.com","https://www.youtube.com","https://youtube.com/","https://youtube.com"];
+  var header=document.querySelector("ytm-header")||document.querySelector("header")||document.querySelector("ytd-masthead");
+  var anchor=null;
+  if(header){
+    var anchors=header.querySelectorAll("a");
+    for(var i=0;i<anchors.length;i++){
+      var a=anchors[i];
+      var href=a.getAttribute("href")||"";
+      if(homeHrefs.indexOf(href)>-1 && a.querySelector("svg")){
+        var r=a.getBoundingClientRect();
+        if(r.width>0 && r.height>0){ anchor=a; break; }
+      }
+    }
   }
-});
+  if(!anchor){
+    anchor=document.querySelector("ytm-home-logo a, yt-logo a, a#logo, #logo a");
+  }
+  if(!anchor){
+    return document.querySelector("ytm-home-logo, yt-logo, ytd-topbar-logo-renderer")||null;
+  }
+  return anchor.closest("ytm-home-logo, yt-logo, ytd-topbar-logo-renderer")||anchor;
+}
+
+function bindSettingsClick(el){
+  el.addEventListener("click",function(ev){
+    ev.preventDefault();
+    ev.stopPropagation();
+    var ex=document.getElementById("settingsprodiv");
+    if(ex){ ex.remove(); return; }
+    if(window.location.hash === "#settings"){
+      try{ ytproSettings(); }catch(e){ console.log("[YOUTUBE PREMIUM] erro ytproSettings:", e); }
+    }else{
+      window.location.hash="settings";
+    }
+  });
+}
+
+var addSettingsTab=()=>{
+  var existingBtn=document.getElementById("setDiv");
+  var existingMenu=document.getElementById("ytproMenuBtn");
+  var logoRef=findHeaderLogoRef();
+
+  if(logoRef){
+    if(existingBtn && existingBtn.dataset.ytproMode === "inline" && existingMenu && document.body.contains(existingBtn)){
+      return;
+    }
+    
+    if(existingBtn) existingBtn.remove();
+    if(existingMenu) existingMenu.remove();
+    var oldPrem=document.getElementById("ytProPremiumLabel");
+    if(oldPrem) oldPrem.remove();
+
+    var hdrFg=(window.location.href.indexOf("watch") > -1) ? "#fff" : c;
+
+    var prem=document.createElement("span");
+    prem.setAttribute("id","ytProPremiumLabel");
+    prem.textContent="premium";
+    prem.setAttribute("style","display:inline-block;vertical-align:middle;font-family:Roboto,Arial,sans-serif;font-size:15px;font-weight:500;letter-spacing:-0.4px;line-height:1;margin-left:2px;margin-right:6px;white-space:nowrap;color:"+hdrFg+";pointer-events:none;user-select:none;");
+
+    var ytpMenuBtn=document.createElement("div");
+    ytpMenuBtn.setAttribute("id","ytproMenuBtn");
+    ytpMenuBtn.dataset.ytproMode="inline";
+    ytpMenuBtn.setAttribute("style","z-index:9999999999;display:inline-flex;align-items:center;justify-content:center;padding:4px;cursor:pointer;pointer-events:auto;vertical-align:middle;margin-right:2px;");
+    ytpMenuBtn.innerHTML=`<span style="display:flex;align-items:center;justify-content:center;pointer-events:none;">
+      <svg fill="${hdrFg}" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path></svg>
+    </span>`;
+
+    ytpMenuBtn.addEventListener("click",function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+      var originalMenuBtn = document.querySelector("ytm-topbar-menu-button-renderer button") ||
+                            document.querySelector("#guide-button") ||
+                            document.querySelector("ytm-menu-button-renderer button") ||
+                            document.querySelector("button[aria-label='Guia']") ||
+                            document.querySelector("button[aria-label='Guide']");
+      if(originalMenuBtn){
+        originalMenuBtn.click();
+      }
+    });
+
+    var setDiv=document.createElement("div");
+    setDiv.setAttribute("id","setDiv");
+    setDiv.dataset.ytproMode="inline";
+    setDiv.setAttribute("style","z-index:9999999999;display:inline-flex;align-items:center;justify-content:center;padding:4px;cursor:pointer;pointer-events:auto;vertical-align:middle;");
+    setDiv.innerHTML=`<span style="display:flex;align-items:center;justify-content:center;pointer-events:none;">
+<svg fill="${hdrFg}" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" id="hSett"><path d="M12.844 1h-1.687a2 2 0 00-1.962 1.616 3 3 0 01-3.92 2.263 2 2 0 00-2.38.891l-.842 1.46a2 2 0 00.417 2.507 3 3 0 010 4.525 2 2 0 00-.417 2.507l.843 1.46a2 2 0 002.38.892 3.001 3.001 0 013.918 2.263A2 2 0 0011.157 23h1.686a2 2 0 001.963-1.615 3.002 3.002 0 013.92-2.263 2 2 0 002.38-.892l.842-1.46a2 2 0 00-.418-2.507 3 3 0 010-4.526 2 2 0 00.418-2.508l-.843-1.46a2 2 0 00-2.38-.891 3 3 0 01-3.919-2.263A2 2 0 0012.844 1Zm-1.767 2.347a6 6 0 00.08-.347h1.687a4.98 4.98 0 002.407 3.37 4.98 4.98 0 004.122.4l.843 1.46A4.98 4.98 0 0018.5 12a4.98 4.98 0 001.716 3.77l-.843 1.46a4.98 4.98 0 00-4.123.4A4.979 4.979 0 0012.843 21h-1.686a4.98 4.98 0 00-2.408-3.371 4.999 4.999 0 00-4.12-.399l-.844-1.46A4.979 4.979 0 005.5 12a4.98 4.98 0 00-1.715-3.77l.842-1.459a4.98 4.98 0 004.123-.399 4.981 4.981 0 002.327-3.025ZM16 12a4 4 0 11-7.999 0 4 4 0 018 0Zm-4 2a2 2 0 100-4 2 2 0 000 4Z"></path></svg>
+</span>`;
+
+    var premOK=insertAfter(logoRef,prem);
+    var base = premOK ? prem : logoRef;
+    var menuOK = insertAfter(base, ytpMenuBtn);
+    insertAfter(menuOK ? ytpMenuBtn : base, setDiv);
+
+    bindSettingsClick(setDiv);
+    console.log("[YOUTUBE PREMIUM] botões inline (menu + engrenagem) criados no topo");
+    return;
+  }
+
+  if(existingBtn) return;
+  if(Date.now() - ytproBootTime < 4000) return;
+
+  var setDivF=document.createElement("div");
+  setDivF.setAttribute("id","setDiv");
+  setDivF.dataset.ytproMode="floating";
+  setDivF.setAttribute("style","z-index:2147483646;position:fixed;top:10px;left:10px;width:40px;height:40px;background:linear-gradient(135deg,#ff0000,#cc0000);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(255,0,0,0.6);cursor:pointer;pointer-events:auto;");
+  setDivF.innerHTML=`<svg fill="#fff" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M12.844 1h-1.687a2 2 0 00-1.962 1.616 3 3 0 01-3.92 2.263 2 2 0 00-2.38.891l-.842 1.46a2 2 0 00.417 2.507 3 3 0 010 4.525 2 2 0 00-.417 2.507l.843 1.46a2 2 0 002.38.892 3.001 3.001 0 013.918 2.263A2 2 0 0011.157 23h1.686a2 2 0 001.963-1.615 3.002 3.002 0 013.92-2.263 2 2 0 002.38-.892l.842-1.46a2 2 0 00-.418-2.507 3 3 0 010-4.526 2 2 0 00.418-2.508l-.843-1.46a2 2 0 00-2.38-.891 3 3 0 01-3.919-2.263A2 2 0 0012.844 1Zm-1.767 2.347a6 6 0 00.08-.347h1.687a4.98 4.98 0 002.407 3.37 4.98 4.98 0 004.122.4l.843 1.46A4.98 4.98 0 0018.5 12a4.98 4.98 0 001.716 3.77l-.843 1.46a4.98 4.98 0 00-4.123.4A4.979 4.979 0 0012.843 21h-1.686a4.98 4.98 0 00-2.408-3.371 4.999 4.999 0 00-4.12-.399l-.844-1.46A4.979 4.979 0 005.5 12a4.98 4.98 0 00-1.715-3.77l.842-1.459a4.98 4.98 0 004.123-.399 4.981 4.981 0 002.327-3.025ZM16 12a4 4 0 11-7.999 0 4 4 0 018 0Zm-4 2a2 2 0 100-4 2 2 0 000 4Z"></path></svg>`;
+  document.body.appendChild(setDivF);
+  bindSettingsClick(setDivF);
+  console.log("[YOUTUBE PREMIUM] botão flutuante criado (fallback)");
 };
 
 function getDislikesInLocale(num){

@@ -165,7 +165,7 @@ if(logo){
 setDiv.setAttribute("style",`z-index:9999999999;font-size:22px;text-align:center;line-height:35px;pointer-events:auto;`);
 insertAfter(logo,setDiv);
 }else{
-setDiv.setAttribute("style",`z-index:2147483646;font-size:22px;text-align:center;line-height:35px;pointer-events:auto;position:fixed;bottom:80px;right:16px;width:48px;height:48px;background:linear-gradient(135deg,#ff0000,#cc0000);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(255,0,0,0.6);`);
+setDiv.setAttribute("style",`z-index:2147483646;font-size:22px;text-align:center;line-height:35px;pointer-events:auto;position:fixed;bottom:80px;right:16px;width:40px;height:40px;background:linear-gradient(135deg,#ff0000,#cc0000);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(255,0,0,0.6);`);
 document.body.appendChild(setDiv);
 }
 if(document.getElementById("hSett") != null){

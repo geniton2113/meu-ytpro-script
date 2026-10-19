@@ -11,6 +11,7 @@ var script = document.createElement('script'); script.src="//youtube.com/ytpro_c
 if(!YTProVer){
 
 var YTProVer="5.0 Premium";
+console.log("[YOUTUBE PREMIUM] script carregado");
 var ytoldV="";
 var isF=false;
 var isAp=false;
